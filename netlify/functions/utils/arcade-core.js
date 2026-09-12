@@ -540,26 +540,37 @@ async function reconcileTableState(tableId, tableConfig, netio, isTestMode) {
                 // B. Normal session expiration in Supabase
                 if (now > (expiresAtMs + 4000)) {
                     let isOff = false;
+                    let observedAt = null;
                     const isMqttMode = (tableConfig?.switch_type === 'mqtt') || (process.env.MQTT_ENABLED === 'true');
                     try {
                         if (isMqttMode) {
-                            const { probeOutletOffMqtt } = require('./mqtt-cloud-bridge');
-                            const probeRes = await probeOutletOffMqtt({
-                                deviceSn: tableConfig?.device_serial || process.env.HIVEMQ_DEVICE_SN || '24A42C3BFF17',
-                                targetOutletId,
-                                timeoutMs: 5000
-                            });
-                            isOff = (probeRes.confirmedOff === true);
+                            const deviceSn = tableConfig?.device_serial || process.env.HIVEMQ_DEVICE_SN;
+                            if (deviceSn) {
+                                const { probeOutletOffMqtt } = require('./mqtt-cloud-bridge');
+                                const probeRes = await probeOutletOffMqtt({
+                                    deviceSn,
+                                    targetOutletId,
+                                    timeoutMs: 5000
+                                });
+                                if (probeRes.confirmedOff === true && probeRes.observedAt) {
+                                    isOff = true;
+                                    observedAt = probeRes.observedAt;
+                                }
+                            }
                         } else if (netio && typeof netio.verifyConfirmedOff === 'function') {
-                            isOff = (await netio.verifyConfirmedOff(targetOutputId) === true);
+                            const confirmed = await netio.verifyConfirmedOff(targetOutputId);
+                            if (confirmed === true) {
+                                isOff = true;
+                                observedAt = new Date().toISOString();
+                            }
                         }
                     } catch (probeErr) {
                         console.warn('[RECONCILIATION] Supabase probe error:', probeErr.message);
                         isOff = false;
                     }
 
-                    if (isOff === true) {
-                        const confirmedOffAt = new Date().toISOString();
+                    if (isOff === true && observedAt) {
+                        const confirmedOffAt = observedAt;
                         const { data: matchedOrder } = await sb
                             .from('arcade_orders')
                             .select('order_id')
@@ -2069,9 +2080,19 @@ async function claimAndActivateOrder({ orderId, paymentIntent, isFreePlay = fals
         let netioResult;
         let dispatchError = null;
         if (isMqttMode) {
+            const deviceSn = cfg?.device_serial || process.env.HIVEMQ_DEVICE_SN;
+            if (!deviceSn) {
+                return {
+                    success: false,
+                    statusCode: 503,
+                    code: 'HARDWARE_CONFIG_MISSING',
+                    refundRequired: true,
+                    error: `Device serial number missing for MQTT table '${effectiveTableId}'.`
+                };
+            }
             const { dispatchTimedPlayMqtt } = require('./mqtt-cloud-bridge');
             const mqttRes = await dispatchTimedPlayMqtt({
-                deviceSn: cfg?.device_serial || process.env.HIVEMQ_DEVICE_SN || '24A42C3BFF17',
+                deviceSn,
                 durationSeconds,
                 targetOutletId,
                 attractOutletId: lightsOutputId,
@@ -2096,13 +2117,18 @@ async function claimAndActivateOrder({ orderId, paymentIntent, isFreePlay = fals
             let isConfirmedOff = false;
             try {
                 if (isMqttMode) {
-                    const { probeOutletOffMqtt } = require('./mqtt-cloud-bridge');
-                    const probeRes = await probeOutletOffMqtt({
-                        deviceSn: cfg?.device_serial || process.env.HIVEMQ_DEVICE_SN || '24A42C3BFF17',
-                        targetOutletId,
-                        timeoutMs: 5000
-                    });
-                    isConfirmedOff = (probeRes.confirmedOff === true);
+                    const deviceSn = cfg?.device_serial || process.env.HIVEMQ_DEVICE_SN;
+                    if (deviceSn) {
+                        const { probeOutletOffMqtt } = require('./mqtt-cloud-bridge');
+                        const probeRes = await probeOutletOffMqtt({
+                            deviceSn,
+                            targetOutletId,
+                            timeoutMs: 5000
+                        });
+                        isConfirmedOff = (probeRes.confirmedOff === true);
+                    } else {
+                        isConfirmedOff = false;
+                    }
                 } else if (netio && typeof netio.verifyConfirmedOff === 'function') {
                     const probeRes = await netio.verifyConfirmedOff(targetOutputId);
                     // Strictly numerical 0 returns true; State === 1, missing, or timeout returns false/throws

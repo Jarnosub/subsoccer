@@ -55,6 +55,14 @@ const handler = async (event) => {
         for (const order of expiredOrders) {
             console.log(`[RECONCILE CRON] Reconciling order ${order.order_id} on table ${order.table_id}...`);
 
+            // Enforce expires_at + 4000ms safety buffer
+            const expiresAtMs = order.expires_at ? new Date(order.expires_at).getTime() : 0;
+            const now = Date.now();
+            if (expiresAtMs > 0 && now < (expiresAtMs + 4000)) {
+                console.log(`[RECONCILE CRON] Order ${order.order_id} has not yet passed expires_at + 4s buffer. Skipping.`);
+                continue;
+            }
+
             // Fetch table config
             const { data: tableCfg } = await sb
                 .from('arcade_table_configs')
@@ -64,7 +72,13 @@ const handler = async (event) => {
 
             const targetOutletId = tableCfg?.switch_output_id || 1;
             const lightsOutletId = tableCfg?.lights_output_id || 3;
-            const deviceSn = tableCfg?.device_serial || process.env.HIVEMQ_DEVICE_SN || '24A42C3BFF17';
+            const deviceSn = tableCfg?.device_serial || process.env.HIVEMQ_DEVICE_SN;
+
+            if (!deviceSn) {
+                console.warn(`[RECONCILE CRON] Table ${order.table_id} missing device serial. Cannot probe.`);
+                results.push({ orderId: order.order_id, success: false, error: 'DEVICE_SERIAL_MISSING' });
+                continue;
+            }
 
             // Probe hardware via fresh MQTT telemetry
             const probe = await probeOutletOffMqtt({
@@ -75,8 +89,8 @@ const handler = async (event) => {
 
             console.log(`[RECONCILE CRON] Hardware probe for Outlet ${targetOutletId}:`, probe);
 
-            if (probe.confirmedOff === true) {
-                const confirmedOffAt = probe.observedAt || new Date().toISOString();
+            if (probe.confirmedOff === true && probe.observedAt) {
+                const confirmedOffAt = probe.observedAt;
 
                 // Call atomic release RPC
                 const { data: releaseData, error: releaseErr } = await sb.rpc('arcade_release_reconciled_table', {

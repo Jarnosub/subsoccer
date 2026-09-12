@@ -72,29 +72,6 @@ exports.handler = async (event, context) => {
     const clientToken = (body.clientToken || `tok-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`).trim();
     const isTestMode = checkIsTestMode();
 
-    // Auto-unblock: Clear any stale hardware_uncertain or expired orders/sessions that block new checkout
-    const supabase = getSupabase();
-    if (supabase) {
-        try {
-            await supabase.from('arcade_sessions')
-                .update({ status: 'completed', confirmed_off_at: new Date().toISOString() })
-                .eq('table_id', table)
-                .in('status', ['hardware_uncertain', 'requested']);
-
-            await supabase.from('arcade_orders')
-                .update({ status: 'refund_registered' })
-                .eq('table_id', table)
-                .in('status', ['hardware_uncertain', 'holding']);
-
-            await supabase.from('arcade_table_configs')
-                .update({ lock_state: 'available', pending_maintenance_lock: false })
-                .eq('table_id', table)
-                .eq('lock_state', 'error_locked');
-        } catch (cleanErr) {
-            console.warn('[CREATE PI] Stale unblock warning:', cleanErr.message);
-        }
-    }
-
     // 1. Create atomic table hold (3 min reservation)
     const holdResult = await createPaymentHold({
         tableId: table,

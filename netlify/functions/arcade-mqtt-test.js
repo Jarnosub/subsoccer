@@ -23,6 +23,14 @@ exports.handler = async (event) => {
     }
 
     const config = getMqttConfig();
+    if (!config.deviceSn) {
+        return {
+            statusCode: 503,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ error: 'Configuration Error: HIVEMQ_DEVICE_SN is not configured on server', code: 'DEVICE_SN_NOT_CONFIGURED' })
+        };
+    }
+
     const action = event.queryStringParameters?.action || 'probe';
     const targetOutlet = parseInt(event.queryStringParameters?.outlet || '1', 10);
     const requestedSn = event.queryStringParameters?.sn || config.deviceSn;
@@ -32,7 +40,7 @@ exports.handler = async (event) => {
         return {
             statusCode: 400,
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ error: `Forbidden: Only test device ${config.deviceSn} is permitted`, code: 'INVALID_DEVICE_SN' })
+            body: JSON.stringify({ error: `Forbidden: Only configured device ${config.deviceSn} is permitted`, code: 'INVALID_DEVICE_SN' })
         };
     }
 

@@ -7,41 +7,141 @@
  * directly to NETIO PowerBOX 3PF via private cloud MQTT broker (e.g. HiveMQ Cloud).
  * 
  * Guarantees:
- * - Strict TLS (port 8883) with device/cloud authentication credentials
+ * - Strict TLS (port 8883) with private cloud credentials and certificate validation
  * - Ephemeral connection lifecycle (connect -> suback -> pub -> observe -> end)
  * - Anti-stale protection: strictly discards broker retained messages (packet.retain === true)
- * - Searches outputs strictly by ID field (`o.ID === targetId`), NEVER by array index
- * - Bounded timeouts (6-8s) to prevent serverless function hangs
- * - Bounded single dispatch (no automatic retries that could duplicate plays)
+ * - Chronological causality: ignores telemetry arriving before command publish / probe start
+ * - Parses genuine NETIO MQTT-flex ${OUTPUTS_STATUS} JSON payloads
+ * - Searches outputs strictly by ID field (`o.ID === targetOutletId`), NEVER by array index
+ * - Validates numeric State (0 = OFF, 1 = ON)
+ * - Bounded timeouts with fail-closed safety (missing telemetry yields failure, NEVER assumed success)
+ * - No optimistic fallbacks: OPTIMISTIC_NO_TELEMETRY and OPTIMISTIC_HARDWARE_PULSE_EXPIRED removed
+ * - Single dispatch with no retries that could duplicate physical plays
+ * 
+ * NETIO MQTT FLEX Configuration Reference:
+ * - Topic Command: subsoccer/test-<sn>/cmd
+ * - Topic Status:  subsoccer/test-<sn>/status
+ * - Trigger 1 (Event):   {"type": "change", "source": "OUTPUTS/1/STATE"}
+ * - Trigger 2 (Timer):    {"type": "timer", "period": 5}
+ * - Payload template:     ${OUTPUTS_STATUS}
+ *   (Note: ${JDOUT_STATUS} is invalid in PowerBOX 3PF and triggers "Variable parser: Invalid variable")
  */
 
 const mqtt = require('mqtt');
 
-function getMqttConfig() {
+let _clientFactory = null;
+
+/**
+ * Dependency injection helper for unit tests to mock MQTT client
+ */
+function _setMqttClientFactory(factory) {
+    _clientFactory = factory;
+}
+
+/**
+ * Retrieve MQTT configuration from environment or parameters.
+ * Does NOT fall back to public HiveMQ or hardcoded device serial.
+ */
+function getMqttConfig(overrides = {}) {
     return {
-        host: process.env.HIVEMQ_HOST || process.env.MQTT_BROKER_HOST || 'broker.hivemq.com',
-        port: parseInt(process.env.HIVEMQ_PORT || process.env.MQTT_BROKER_PORT || '8883', 10),
-        username: process.env.HIVEMQ_USERNAME || process.env.MQTT_USERNAME || '',
-        password: process.env.HIVEMQ_PASSWORD || process.env.MQTT_PASSWORD || '',
-        deviceSn: process.env.HIVEMQ_DEVICE_SN || process.env.NETIO_SERIAL || '24A42C3BFF17',
-        topicPrefix: process.env.MQTT_TOPIC_PREFIX || 'subsoccer/test'
+        host: overrides.host || process.env.HIVEMQ_HOST || process.env.MQTT_BROKER_HOST || '',
+        port: parseInt(overrides.port || process.env.HIVEMQ_PORT || process.env.MQTT_BROKER_PORT || '8883', 10),
+        username: overrides.username || process.env.HIVEMQ_USERNAME || process.env.MQTT_USERNAME || '',
+        password: overrides.password || process.env.HIVEMQ_PASSWORD || process.env.MQTT_PASSWORD || '',
+        deviceSn: overrides.deviceSn || process.env.HIVEMQ_DEVICE_SN || process.env.NETIO_SERIAL || '',
+        topicPrefix: (overrides.topicPrefix || process.env.MQTT_TOPIC_PREFIX || 'subsoccer/test').trim(),
+        allowInsecure: Boolean(overrides.allowInsecure)
     };
 }
 
 /**
- * Helper to connect to broker over TLS with timeout
+ * Validate configuration for production / secure operation.
+ */
+function validateMqttConfig(config, { requireDeviceSn = true, isProductionStrict = false } = {}) {
+    const isTestMode = Boolean(process.env.VITEST || process.env.NODE_ENV === 'test');
+    if (!isProductionStrict && (_clientFactory || config.allowInsecure || isTestMode)) {
+        return true;
+    }
+
+    if (!config.host || config.host === 'broker.hivemq.com') {
+        throw new Error('CONFIG_INVALID: Private secure MQTT broker host (HIVEMQ_HOST) required. Public HiveMQ broker is strictly forbidden.');
+    }
+    if (config.port !== 8883) {
+        throw new Error(`CONFIG_INVALID: Secure TLS port 8883 required for cloud MQTT broker (received port: ${config.port}).`);
+    }
+    if (!config.username || !config.password) {
+        throw new Error('CONFIG_INVALID: Private broker credentials (HIVEMQ_USERNAME and HIVEMQ_PASSWORD) are required.');
+    }
+    if (requireDeviceSn && !config.deviceSn) {
+        throw new Error('CONFIG_INVALID: Device serial number (HIVEMQ_DEVICE_SN or deviceSn parameter) is required.');
+    }
+    return true;
+}
+
+/**
+ * Parse genuine NETIO ${OUTPUTS_STATUS} payload.
+ * Handles both `{ Outputs: [...] }` wrapper and raw `[...]` array.
+ * Extracts outlet ID and numeric State (0 or 1).
+ */
+function parseNetioOutputsTelemetry(msgBuffer) {
+    if (!msgBuffer) return null;
+    let data;
+    try {
+        const text = msgBuffer.toString().trim();
+        data = JSON.parse(text);
+    } catch (e) {
+        return null;
+    }
+
+    if (!data) return null;
+    let outputs = null;
+    if (Array.isArray(data.Outputs)) {
+        outputs = data.Outputs;
+    } else if (Array.isArray(data)) {
+        outputs = data;
+    }
+
+    if (!outputs) return null;
+
+    return outputs.map(o => {
+        const idNum = typeof o.ID === 'number' ? o.ID : parseInt(o.ID, 10);
+        let stateNum = null;
+        if (typeof o.State === 'number') {
+            stateNum = o.State;
+        } else if (o.State !== undefined && o.State !== null) {
+            const parsed = parseInt(o.State, 10);
+            if (!isNaN(parsed)) stateNum = parsed;
+        }
+
+        return {
+            ID: idNum,
+            State: stateNum,
+            Action: typeof o.Action === 'number' ? o.Action : undefined,
+            Delay: typeof o.Delay === 'number' ? o.Delay : undefined,
+            Name: o.Name
+        };
+    }).filter(o => !isNaN(o.ID) && o.State !== null && !isNaN(o.State));
+}
+
+/**
+ * Helper to connect to broker over TLS with timeout.
  */
 function createMqttClient(config, clientPrefix = 'cloud-fn') {
+    if (_clientFactory) {
+        return _clientFactory(config, clientPrefix);
+    }
+
+    validateMqttConfig(config, { requireDeviceSn: false });
     const clientId = `${clientPrefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-    const isLocalOrUnencrypted = config.port === 1883 || config.host === 'localhost' || config.host === '127.0.0.1';
-    const protocol = isLocalOrUnencrypted ? 'mqtt' : 'mqtts';
+    const isLocalOrMock = config.port === 1883 || config.host === 'localhost' || config.host === '127.0.0.1';
+    const protocol = isLocalOrMock ? 'mqtt' : 'mqtts';
 
     const client = mqtt.connect(`${protocol}://${config.host}:${config.port}`, {
         clientId,
         username: config.username || undefined,
         password: config.password || undefined,
-        servername: isLocalOrUnencrypted ? undefined : config.host,
-        rejectUnauthorized: !isLocalOrUnencrypted,
+        servername: isLocalOrMock ? undefined : config.host,
+        rejectUnauthorized: !isLocalOrMock,
         protocolVersion: 4, // MQTT 3.1.1
         connectTimeout: 8000,
         reconnectPeriod: 0 // Do NOT auto-reconnect inside ephemeral serverless functions
@@ -51,7 +151,13 @@ function createMqttClient(config, clientPrefix = 'cloud-fn') {
 }
 
 /**
- * Dispatch timed play command to NETIO and await fresh hardware activation telemetry
+ * Dispatch timed play command to NETIO and await genuine hardware activation telemetry (State === 1).
+ * 
+ * Strict safety rules:
+ * - NO OPTIMISTIC_NO_TELEMETRY: timeout without telemetry returns failure.
+ * - Strictly ignores retained messages (`packet.retain === true`).
+ * - Chronological causality: ignores telemetry received before command publish ACK.
+ * - Matches outlet strictly by ID field (`o.ID === targetOutletId`).
  * 
  * @param {Object} options
  * @param {string} [options.deviceSn] - Device serial number
@@ -66,10 +172,12 @@ async function dispatchTimedPlayMqtt({
     durationSeconds,
     targetOutletId = 1,
     attractOutletId = 3,
-    timeoutMs = 20000
+    timeoutMs = 12000
 }) {
-    const config = getMqttConfig();
-    const sn = deviceSn || config.deviceSn;
+    const config = getMqttConfig({ deviceSn });
+    validateMqttConfig(config, { requireDeviceSn: true });
+
+    const sn = config.deviceSn;
     const topicCmd = `${config.topicPrefix}-${sn}/cmd`;
     const topicStatus = `${config.topicPrefix}-${sn}/status`;
 
@@ -84,6 +192,7 @@ async function dispatchTimedPlayMqtt({
     return new Promise((resolve) => {
         let client = null;
         let isDone = false;
+        let commandPublishedAt = 0;
 
         const cleanup = () => {
             if (timer) clearTimeout(timer);
@@ -104,7 +213,7 @@ async function dispatchTimedPlayMqtt({
             finish({
                 success: false,
                 code: 'TIMEOUT_NO_TELEMETRY',
-                error: 'NETIO did not publish activation telemetry within deadline'
+                error: 'NETIO did not publish activation telemetry (State: 1) within deadline'
             });
         }, timeoutMs);
 
@@ -139,6 +248,7 @@ async function dispatchTimedPlayMqtt({
                 }
 
                 console.log(`[MQTT BRIDGE] Subscribed to ${topicStatus}. Publishing timed play command to ${topicCmd}...`);
+                commandPublishedAt = Date.now();
                 client.publish(topicCmd, payloadCmd, { qos: 0, retain: false }, (pubErr) => {
                     if (pubErr) {
                         return finish({
@@ -147,19 +257,7 @@ async function dispatchTimedPlayMqtt({
                             error: pubErr.message
                         });
                     }
-                    console.log(`[MQTT BRIDGE] Command published successfully. Waiting 1500ms for telemetry (optimistic fallback if none)...`);
-                    // Optimistic fallback: NETIO PowerBOX 3PF does not support ${JDOUT_STATUS} publish variable,
-                    // so telemetry may never arrive. If no telemetry within 1500ms, assume command executed.
-                    setTimeout(() => {
-                        if (!isDone) {
-                            console.log('[MQTT BRIDGE] No telemetry received — resolving optimistically (command was published to broker).');
-                            finish({
-                                success: true,
-                                code: 'OPTIMISTIC_NO_TELEMETRY',
-                                observedAt: new Date().toISOString()
-                            });
-                        }
-                    }, 1500);
+                    console.log(`[MQTT BRIDGE] Command published successfully at ${commandPublishedAt}. Waiting for verified activation telemetry...`);
                 });
             });
         });
@@ -167,55 +265,65 @@ async function dispatchTimedPlayMqtt({
         client.on('message', (topic, msgBuffer, packet) => {
             if (topic !== topicStatus) return;
 
-            // RULE 4: Strictly ignore old retained messages from broker
+            // Anti-stale: discard retained messages
             if (packet && packet.retain) {
                 console.log('[MQTT BRIDGE] Discarding retained stale telemetry packet.');
                 return;
             }
 
-            try {
-                const telemetry = JSON.parse(msgBuffer.toString());
-                if (!telemetry || !Array.isArray(telemetry.Outputs)) return;
+            // Chronological causality: ignore messages received before command was published
+            const receivedAt = Date.now();
+            if (!commandPublishedAt || receivedAt < commandPublishedAt) {
+                console.log('[MQTT BRIDGE] Discarding pre-publish telemetry packet.');
+                return;
+            }
 
-                // RULE 4: Search strictly by ID field, NOT by array index
-                const targetOutput = telemetry.Outputs.find(o => o.ID === targetOutletId);
-                if (targetOutput && targetOutput.State === 1) {
-                    console.log(`[MQTT BRIDGE] Verified Output ${targetOutletId} is ACTIVE (State: 1)!`);
-                    finish({
-                        success: true,
-                        observedAt: new Date().toISOString(),
-                        rawTelemetry: telemetry
-                    });
-                }
-            } catch (jsonErr) {
-                console.warn('[MQTT BRIDGE] Malformed telemetry received:', jsonErr.message);
+            const outputs = parseNetioOutputsTelemetry(msgBuffer);
+            if (!outputs) return;
+
+            // Search strictly by ID field, NOT by array index
+            const targetOutput = outputs.find(o => o.ID === targetOutletId);
+            if (targetOutput && targetOutput.State === 1) {
+                console.log(`[MQTT BRIDGE] Verified Output ${targetOutletId} is ACTIVE (State: 1)!`);
+                finish({
+                    success: true,
+                    observedAt: new Date().toISOString(),
+                    rawTelemetry: outputs
+                });
             }
         });
     });
 }
 
 /**
- * Probe an outlet to verify if it is definitively OFF.
- * Sends an active query `{"Outputs": []}` to the command topic, prompting NETIO
- * to immediately publish its fresh status without actuating any relays.
- * Strictly ignores retained messages to guarantee fresh observation from device.
+ * Probe an outlet to verify if it is definitively OFF (State === 0).
+ * 
+ * Strict safety rules:
+ * - NO OPTIMISTIC_HARDWARE_PULSE_EXPIRED: timeout returns confirmedOff: false.
+ * - Does NOT assume {"Outputs": []} triggers a synchronous MQTT reply. Listens for fresh status
+ *   telemetry (from periodic timer or event) received at or after probe start.
+ * - Strictly ignores retained messages (`packet.retain === true`).
+ * - Chronological causality: only considers messages received at or after probe start.
+ * - Requires numeric State === 0. State === 1 returns confirmedOff: false.
  * 
  * @param {Object} options
  * @param {string} [options.deviceSn]
  * @param {number} [options.targetOutletId=1]
  * @param {number} [options.timeoutMs=5000]
- * @returns {Promise<{ confirmedOff: boolean, state: number|null, observedAt?: string, roundtripMs?: number, reason?: string }>}
+ * @returns {Promise<{ confirmedOff: boolean, state: number|null, observedAt?: string|null, roundtripMs?: number, reason?: string }>}
  */
 async function probeOutletOffMqtt({
     deviceSn,
     targetOutletId = 1,
     timeoutMs = 5000
 }) {
-    const config = getMqttConfig();
-    const sn = deviceSn || config.deviceSn;
+    const config = getMqttConfig({ deviceSn });
+    validateMqttConfig(config, { requireDeviceSn: true });
+
+    const sn = config.deviceSn;
     const topicCmd = `${config.topicPrefix}-${sn}/cmd`;
     const topicStatus = `${config.topicPrefix}-${sn}/status`;
-    const querySentAt = Date.now();
+    const probeStartedAt = Date.now();
 
     return new Promise((resolve) => {
         let client = null;
@@ -236,35 +344,35 @@ async function probeOutletOffMqtt({
         };
 
         const timer = setTimeout(() => {
-            console.log('[MQTT PROBE] Probe timeout (1.5s) — assuming relay confirmed OFF via hardware pulse timer.');
+            console.warn(`[MQTT PROBE] Probe timed out after ${timeoutMs}ms without fresh telemetry.`);
             finish({
-                confirmedOff: true,
-                state: 0,
-                reason: 'OPTIMISTIC_HARDWARE_PULSE_EXPIRED'
+                confirmedOff: false,
+                state: null,
+                observedAt: null,
+                reason: 'PROBE_TIMEOUT_NO_FRESH_TELEMETRY'
             });
-        }, Math.min(timeoutMs, 1500));
+        }, timeoutMs);
 
         try {
             client = createMqttClient(config, 'probe');
         } catch (e) {
-            return finish({ confirmedOff: false, state: null, reason: e.message });
+            return finish({ confirmedOff: false, state: null, observedAt: null, reason: e.message });
         }
 
         client.on('error', (err) => {
-            finish({ confirmedOff: false, state: null, reason: err.message });
+            finish({ confirmedOff: false, state: null, observedAt: null, reason: err.message });
         });
 
         client.on('connect', () => {
             client.subscribe(topicStatus, { qos: 0 }, (subErr) => {
-                if (subErr) return finish({ confirmedOff: false, state: null, reason: subErr.message });
+                if (subErr) return finish({ confirmedOff: false, state: null, observedAt: null, reason: subErr.message });
 
-                // Actively query NETIO for fresh status:
-                // Sending empty Outputs array prompts NETIO JSON API to respond immediately
-                // without actuating any relays.
+                // Publish query to cmd topic in case device has an incoming query trigger rule,
+                // but do not rely on it for response (listening for periodic status timer as well).
                 const queryPayload = JSON.stringify({ Outputs: [] });
                 client.publish(topicCmd, queryPayload, { qos: 0, retain: false }, (pubErr) => {
                     if (pubErr) {
-                        console.warn('[MQTT PROBE] Failed to publish query payload:', pubErr.message);
+                        console.warn('[MQTT PROBE] Query publish notice:', pubErr.message);
                     }
                 });
             });
@@ -273,29 +381,34 @@ async function probeOutletOffMqtt({
         client.on('message', (topic, msgBuffer, packet) => {
             if (topic !== topicStatus) return;
 
-            // RULE 4: Strictly ignore old retained messages from broker
+            // Discard retained messages
             if (packet && packet.retain) {
-                console.log('[MQTT PROBE] Ignored retained message.');
+                console.log('[MQTT PROBE] Discarding retained stale telemetry packet.');
                 return;
             }
 
-            try {
-                const telemetry = JSON.parse(msgBuffer.toString());
-                if (!telemetry || !Array.isArray(telemetry.Outputs)) return;
+            // Chronological causality: must be received at or after probe was started
+            const receivedAt = Date.now();
+            if (receivedAt < probeStartedAt) {
+                console.log('[MQTT PROBE] Discarding pre-probe telemetry packet.');
+                return;
+            }
 
-                // RULE 4: Search strictly by ID field, NOT by array index
-                const targetOutput = telemetry.Outputs.find(o => o.ID === targetOutletId);
-                if (targetOutput && typeof targetOutput.State === 'number') {
-                    const isOff = (targetOutput.State === 0);
-                    const roundtripMs = Date.now() - querySentAt;
-                    finish({
-                        confirmedOff: isOff,
-                        state: targetOutput.State,
-                        roundtripMs,
-                        observedAt: new Date().toISOString()
-                    });
-                }
-            } catch (e) {}
+            const outputs = parseNetioOutputsTelemetry(msgBuffer);
+            if (!outputs) return;
+
+            const targetOutput = outputs.find(o => o.ID === targetOutletId);
+            if (targetOutput && typeof targetOutput.State === 'number') {
+                const isOff = (targetOutput.State === 0);
+                const roundtripMs = Date.now() - probeStartedAt;
+                finish({
+                    confirmedOff: isOff,
+                    state: targetOutput.State,
+                    roundtripMs,
+                    observedAt: new Date().toISOString(),
+                    reason: isOff ? 'CONFIRMED_OFF' : 'OUTLET_STILL_ON'
+                });
+            }
         });
     });
 }
@@ -319,10 +432,13 @@ async function setAuxOutletMqtt({
         throw new Error(`Only auxiliary outlets 2 (Screen) and 3 (Lights) can be controlled via setAuxOutletMqtt`);
     }
 
-    const config = getMqttConfig();
-    const sn = deviceSn || config.deviceSn;
+    const config = getMqttConfig({ deviceSn });
+    validateMqttConfig(config, { requireDeviceSn: true });
+
+    const sn = config.deviceSn;
     const topicCmd = `${config.topicPrefix}-${sn}/cmd`;
     const topicStatus = `${config.topicPrefix}-${sn}/status`;
+    const startedAt = Date.now();
 
     const payload = JSON.stringify({
         Outputs: [{ ID: outletId, Action: action }]
@@ -367,13 +483,13 @@ async function setAuxOutletMqtt({
 
         client.on('message', (topic, msgBuffer, packet) => {
             if (topic !== topicStatus || (packet && packet.retain)) return;
-            try {
-                const telemetry = JSON.parse(msgBuffer.toString());
-                const target = (telemetry.Outputs || []).find(o => o.ID === outletId);
-                if (target && target.State === action) {
-                    finish({ success: true, state: target.State, observedAt: new Date().toISOString() });
-                }
-            } catch (e) {}
+            if (Date.now() < startedAt) return;
+            const outputs = parseNetioOutputsTelemetry(msgBuffer);
+            if (!outputs) return;
+            const target = outputs.find(o => o.ID === outletId);
+            if (target && target.State === action) {
+                finish({ success: true, state: target.State, observedAt: new Date().toISOString() });
+            }
         });
     });
 }
@@ -389,8 +505,10 @@ async function setMaintenanceEventMqtt({
     deviceSn,
     isMaintenance
 }) {
-    const config = getMqttConfig();
-    const sn = deviceSn || config.deviceSn;
+    const config = getMqttConfig({ deviceSn });
+    validateMqttConfig(config, { requireDeviceSn: true });
+
+    const sn = config.deviceSn;
     const topicEvent = `${config.topicPrefix}-${sn}/event`;
     const eventString = isMaintenance ? 'maintenance' : 'normal';
 
@@ -398,13 +516,17 @@ async function setMaintenanceEventMqtt({
         let client = null;
         let isDone = false;
 
-        const finish = (result) => {
-            if (isDone) return;
-            isDone = true;
+        const cleanup = () => {
             if (timer) clearTimeout(timer);
             if (client) {
                 try { client.end(true); } catch (e) {}
             }
+        };
+
+        const finish = (result) => {
+            if (isDone) return;
+            isDone = true;
+            cleanup();
             resolve(result);
         };
 
@@ -431,8 +553,12 @@ async function setMaintenanceEventMqtt({
 
 module.exports = {
     getMqttConfig,
+    validateMqttConfig,
+    parseNetioOutputsTelemetry,
+    createMqttClient,
     dispatchTimedPlayMqtt,
     probeOutletOffMqtt,
     setAuxOutletMqtt,
-    setMaintenanceEventMqtt
+    setMaintenanceEventMqtt,
+    _setMqttClientFactory
 };
