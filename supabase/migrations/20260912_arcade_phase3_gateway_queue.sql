@@ -147,7 +147,7 @@ CREATE OR REPLACE FUNCTION public.arcade_gateway_claim_command(
 RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, extensions
 AS $$
 DECLARE
     v_venue RECORD;
@@ -163,7 +163,7 @@ BEGIN
     WHERE venue_id = p_venue_id;
 
     IF NOT FOUND OR v_venue.gateway_token_hash IS NULL OR
-       encode(digest(p_gateway_token, 'sha256'), 'hex') <> v_venue.gateway_token_hash THEN
+       encode(extensions.digest(p_gateway_token::bytea, 'sha256'), 'hex') <> v_venue.gateway_token_hash THEN
         RETURN jsonb_build_object('success', false, 'code', 'UNAUTHORIZED', 'statusCode', 401, 'error', 'Invalid gateway token');
     END IF;
 
@@ -247,7 +247,7 @@ CREATE OR REPLACE FUNCTION public.arcade_gateway_report_dispatch_attempt(
 RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, extensions
 AS $$
 DECLARE
     v_venue RECORD;
@@ -255,7 +255,7 @@ DECLARE
 BEGIN
     SELECT * INTO v_venue FROM public.arcade_venues WHERE venue_id = p_venue_id;
     IF NOT FOUND OR v_venue.gateway_token_hash IS NULL OR
-       encode(digest(p_gateway_token, 'sha256'), 'hex') <> v_venue.gateway_token_hash THEN
+       encode(extensions.digest(p_gateway_token::bytea, 'sha256'), 'hex') <> v_venue.gateway_token_hash THEN
         RETURN jsonb_build_object('success', false, 'code', 'UNAUTHORIZED', 'statusCode', 401);
     END IF;
 
@@ -304,7 +304,7 @@ CREATE OR REPLACE FUNCTION public.arcade_gateway_report_activation_success(
 RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, extensions
 AS $$
 DECLARE
     v_venue RECORD;
@@ -312,7 +312,7 @@ DECLARE
 BEGIN
     SELECT * INTO v_venue FROM public.arcade_venues WHERE venue_id = p_venue_id;
     IF NOT FOUND OR v_venue.gateway_token_hash IS NULL OR
-       encode(digest(p_gateway_token, 'sha256'), 'hex') <> v_venue.gateway_token_hash THEN
+       encode(extensions.digest(p_gateway_token::bytea, 'sha256'), 'hex') <> v_venue.gateway_token_hash THEN
         RETURN jsonb_build_object('success', false, 'code', 'UNAUTHORIZED', 'statusCode', 401);
     END IF;
 
@@ -362,7 +362,7 @@ CREATE OR REPLACE FUNCTION public.arcade_gateway_report_off(
 RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, extensions
 AS $$
 DECLARE
     v_venue RECORD;
@@ -372,7 +372,7 @@ DECLARE
 BEGIN
     SELECT * INTO v_venue FROM public.arcade_venues WHERE venue_id = p_venue_id;
     IF NOT FOUND OR v_venue.gateway_token_hash IS NULL OR
-       encode(digest(p_gateway_token, 'sha256'), 'hex') <> v_venue.gateway_token_hash THEN
+       encode(extensions.digest(p_gateway_token::bytea, 'sha256'), 'hex') <> v_venue.gateway_token_hash THEN
         RETURN jsonb_build_object('success', false, 'code', 'UNAUTHORIZED', 'statusCode', 401);
     END IF;
 
@@ -461,7 +461,7 @@ CREATE OR REPLACE FUNCTION public.arcade_gateway_report_uncertain(
 RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, extensions
 AS $$
 DECLARE
     v_venue RECORD;
@@ -469,7 +469,7 @@ DECLARE
 BEGIN
     SELECT * INTO v_venue FROM public.arcade_venues WHERE venue_id = p_venue_id;
     IF NOT FOUND OR v_venue.gateway_token_hash IS NULL OR
-       encode(digest(p_gateway_token, 'sha256'), 'hex') <> v_venue.gateway_token_hash THEN
+       encode(extensions.digest(p_gateway_token::bytea, 'sha256'), 'hex') <> v_venue.gateway_token_hash THEN
         RETURN jsonb_build_object('success', false, 'code', 'UNAUTHORIZED', 'statusCode', 401);
     END IF;
 
