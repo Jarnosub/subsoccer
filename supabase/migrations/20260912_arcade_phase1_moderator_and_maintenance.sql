@@ -563,7 +563,7 @@ BEGIN
             'success', false,
             'code', 'INVALID_PARAMETERS',
             'statusCode', 400,
-            'refund_required', false,
+            'refund_required', (p_amount_cents IS NULL OR p_amount_cents <> 0),
             'error', 'Puuttuvia tai virheellisiä parametreja tilauksen lunastuksessa.'
         );
     END IF;
