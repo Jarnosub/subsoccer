@@ -109,6 +109,10 @@ function parseNetioOutputsTelemetry(msgBuffer) {
     let outputs = null;
     if (Array.isArray(data.Outputs)) {
         outputs = data.Outputs;
+    } else if (data.Outputs && typeof data.Outputs === 'object' && Array.isArray(data.Outputs.Outputs)) {
+        outputs = data.Outputs.Outputs;
+    } else if (data.Status && typeof data.Status === 'object' && Array.isArray(data.Status.Outputs)) {
+        outputs = data.Status.Outputs;
     } else if (Array.isArray(data)) {
         outputs = data;
     }
@@ -119,7 +123,9 @@ function parseNetioOutputsTelemetry(msgBuffer) {
     let deviceTimeMs = null;
     let hasValidTimestamp = false;
 
-    const rawTime = data.Time ?? data.time ?? data.timestamp ?? (data.Agent && (data.Agent.Time ?? data.Agent.time ?? data.Agent.timestamp));
+    const rawTime = data.Time ?? data.time ?? data.timestamp ?? data.UTC_TIME ?? data.utc_time ??
+        (data.Status && typeof data.Status === 'object' && (data.Status.Time ?? data.Status.time ?? data.Status.UTC_TIME)) ??
+        (data.Agent && (data.Agent.Time ?? data.Agent.time ?? data.Agent.timestamp));
     if (rawTime !== undefined && rawTime !== null && rawTime !== '') {
         if (typeof rawTime === 'number' && Number.isFinite(rawTime) && rawTime > 0) {
             // Unix epoch: if seconds (< 1e11), convert to ms

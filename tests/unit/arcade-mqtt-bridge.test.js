@@ -213,6 +213,42 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
             expect(parsed.outputs[0].State).toBe(1);
         });
 
+        it('parses nested Status.Outputs or Outputs.Outputs with Unix epoch UTC_TIME', () => {
+            // Case 1: "payload": "{\"Time\": ${UTC_TIME}, \"Status\": ${OUTPUTS_STATUS}}"
+            const statusPayload = JSON.stringify({
+                Time: 1726164822,
+                Status: {
+                    Outputs: [
+                        { ID: 1, Name: 'Subsoccer Pulse', State: 0, Action: 6, Delay: 5000 },
+                        { ID: 2, Name: 'Power output 2', State: 1, Action: 6, Delay: 5000 }
+                    ]
+                }
+            });
+            const parsedStatus = parseNetioOutputsTelemetry(Buffer.from(statusPayload));
+            expect(parsedStatus).not.toBeNull();
+            expect(parsedStatus.hasValidTimestamp).toBe(true);
+            expect(parsedStatus.deviceTimeMs).toBe(1726164822000);
+            expect(parsedStatus.outputs).toHaveLength(2);
+            expect(parsedStatus.outputs[0].ID).toBe(1);
+            expect(parsedStatus.outputs[0].State).toBe(0);
+
+            // Case 2: "payload": "{\"Time\": ${UTC_TIME}, \"Outputs\": ${OUTPUTS_STATUS}}"
+            const outputsNestedPayload = JSON.stringify({
+                Time: 1726164822,
+                Outputs: {
+                    Outputs: [
+                        { ID: 1, Name: 'Subsoccer Pulse', State: 1, Action: 6, Delay: 5000 }
+                    ]
+                }
+            });
+            const parsedNested = parseNetioOutputsTelemetry(Buffer.from(outputsNestedPayload));
+            expect(parsedNested).not.toBeNull();
+            expect(parsedNested.hasValidTimestamp).toBe(true);
+            expect(parsedNested.deviceTimeMs).toBe(1726164822000);
+            expect(parsedNested.outputs).toHaveLength(1);
+            expect(parsedNested.outputs[0].State).toBe(1);
+        });
+
         it('identifies invalid or missing timestamps correctly', () => {
             // Missing timestamp
             const noTime = parseNetioOutputsTelemetry(Buffer.from(JSON.stringify({ Outputs: [{ ID: 1, State: 1 }] })));
