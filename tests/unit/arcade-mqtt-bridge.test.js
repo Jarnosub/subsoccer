@@ -249,6 +249,35 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
             expect(parsedNested.outputs[0].State).toBe(1);
         });
 
+        it('successfully parses real captured NETIO PowerBOX 3PF hardware telemetry from fixture', () => {
+            const captured = require('../fixtures/netio-live-telemetry-captured.json');
+            expect(captured).toHaveLength(3);
+
+            for (let i = 0; i < captured.length; i++) {
+                const item = captured[i];
+                const parsed = parseNetioOutputsTelemetry(Buffer.from(item.rawPayload));
+                expect(parsed).not.toBeNull();
+                expect(parsed.hasValidTimestamp).toBe(true);
+                expect(parsed.outputs).toHaveLength(3);
+                expect(parsed.outputs[0]).toEqual({
+                    ID: 1,
+                    Name: 'Subsoccer Pulse',
+                    State: 0,
+                    Action: 6,
+                    Delay: 5000
+                });
+                expect(parsed.outputs[1].State).toBe(1);
+                expect(parsed.outputs[2].State).toBe(1);
+            }
+
+            // Verify time advancement across captured messages
+            const parsed0 = parseNetioOutputsTelemetry(Buffer.from(captured[0].rawPayload));
+            const parsed1 = parseNetioOutputsTelemetry(Buffer.from(captured[1].rawPayload));
+            const parsed2 = parseNetioOutputsTelemetry(Buffer.from(captured[2].rawPayload));
+            expect(parsed1.deviceTimeMs - parsed0.deviceTimeMs).toBe(5000);
+            expect(parsed2.deviceTimeMs - parsed1.deviceTimeMs).toBe(5000);
+        });
+
         it('identifies invalid or missing timestamps correctly', () => {
             // Missing timestamp
             const noTime = parseNetioOutputsTelemetry(Buffer.from(JSON.stringify({ Outputs: [{ ID: 1, State: 1 }] })));

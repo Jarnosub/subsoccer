@@ -1,0 +1,47 @@
+{
+  "broker": {
+    "clientId": "netio24A42C3BFF17",
+    "keepalive": 30,
+    "password": "",
+    "port": 1883,
+    "protocol": "mqtt",
+    "ssl": false,
+    "type": "generic",
+    "url": "broker.emqx.io",
+    "username": ""
+  },
+  "publish": [
+    {
+      "events": [
+        {
+          "source": "OUTPUTS/1/STATE",
+          "type": "change"
+        },
+        {
+          "source": "OUTPUTS/2/STATE",
+          "type": "change"
+        },
+        {
+          "source": "OUTPUTS/3/STATE",
+          "type": "change"
+        },
+        {
+          "period": 5,
+          "type": "timer"
+        }
+      ],
+      "payload": "${JDOUT_STATUS}",
+      "qos": 1,
+      "retain": false,
+      "topic": "subsoccer/test-24A42C3BFF17/status"
+    }
+  ],
+  "subscribe": [
+    {
+      "action": "${payload}",
+      "qos": 1,
+      "target": "REST_JSON",
+      "topic": "subsoccer/test-24A42C3BFF17/cmd"
+    }
+  ]
+}

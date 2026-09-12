@@ -1,0 +1,107 @@
+[
+  {
+    "num": 1,
+    "topic": "subsoccer/test-24A42C3BFF17/status",
+    "rxTime": "2026-09-12T18:25:12.262Z",
+    "retained": false,
+    "rawPayload": "{\"Time\": 1789237511, \"Status\": {\r\n\"Outputs\":[\r\n{\"ID\":1,\"Name\":\"Subsoccer Pulse\",\"State\":0,\"Action\":6,\"Delay\":5000},\r\n{\"ID\":2,\"Name\":\"Power output 2\",\"State\":1,\"Action\":6,\"Delay\":5000},\r\n{\"ID\":3,\"Name\":\"Power output 3\",\"State\":1,\"Action\":6,\"Delay\":5000}\r\n]}}",
+    "parsed": {
+      "Time": 1789237511,
+      "Status": {
+        "Outputs": [
+          {
+            "ID": 1,
+            "Name": "Subsoccer Pulse",
+            "State": 0,
+            "Action": 6,
+            "Delay": 5000
+          },
+          {
+            "ID": 2,
+            "Name": "Power output 2",
+            "State": 1,
+            "Action": 6,
+            "Delay": 5000
+          },
+          {
+            "ID": 3,
+            "Name": "Power output 3",
+            "State": 1,
+            "Action": 6,
+            "Delay": 5000
+          }
+        ]
+      }
+    }
+  },
+  {
+    "num": 2,
+    "topic": "subsoccer/test-24A42C3BFF17/status",
+    "rxTime": "2026-09-12T18:25:17.347Z",
+    "retained": false,
+    "rawPayload": "{\"Time\": 1789237516, \"Status\": {\r\n\"Outputs\":[\r\n{\"ID\":1,\"Name\":\"Subsoccer Pulse\",\"State\":0,\"Action\":6,\"Delay\":5000},\r\n{\"ID\":2,\"Name\":\"Power output 2\",\"State\":1,\"Action\":6,\"Delay\":5000},\r\n{\"ID\":3,\"Name\":\"Power output 3\",\"State\":1,\"Action\":6,\"Delay\":5000}\r\n]}}",
+    "parsed": {
+      "Time": 1789237516,
+      "Status": {
+        "Outputs": [
+          {
+            "ID": 1,
+            "Name": "Subsoccer Pulse",
+            "State": 0,
+            "Action": 6,
+            "Delay": 5000
+          },
+          {
+            "ID": 2,
+            "Name": "Power output 2",
+            "State": 1,
+            "Action": 6,
+            "Delay": 5000
+          },
+          {
+            "ID": 3,
+            "Name": "Power output 3",
+            "State": 1,
+            "Action": 6,
+            "Delay": 5000
+          }
+        ]
+      }
+    }
+  },
+  {
+    "num": 3,
+    "topic": "subsoccer/test-24A42C3BFF17/status",
+    "rxTime": "2026-09-12T18:25:22.477Z",
+    "retained": false,
+    "rawPayload": "{\"Time\": 1789237521, \"Status\": {\r\n\"Outputs\":[\r\n{\"ID\":1,\"Name\":\"Subsoccer Pulse\",\"State\":0,\"Action\":6,\"Delay\":5000},\r\n{\"ID\":2,\"Name\":\"Power output 2\",\"State\":1,\"Action\":6,\"Delay\":5000},\r\n{\"ID\":3,\"Name\":\"Power output 3\",\"State\":1,\"Action\":6,\"Delay\":5000}\r\n]}}",
+    "parsed": {
+      "Time": 1789237521,
+      "Status": {
+        "Outputs": [
+          {
+            "ID": 1,
+            "Name": "Subsoccer Pulse",
+            "State": 0,
+            "Action": 6,
+            "Delay": 5000
+          },
+          {
+            "ID": 2,
+            "Name": "Power output 2",
+            "State": 1,
+            "Action": 6,
+            "Delay": 5000
+          },
+          {
+            "ID": 3,
+            "Name": "Power output 3",
+            "State": 1,
+            "Action": 6,
+            "Delay": 5000
+          }
+        ]
+      }
+    }
+  }
+]
