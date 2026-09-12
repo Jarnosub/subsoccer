@@ -43,11 +43,166 @@ const {
     getSupabase,
     reconcileTableState,
     activateSessionCore,
+    createFreePlayHold,
+    setTableMaintenance,
+    claimAndActivateOrder,
     getOrderStatus,
+    getTableConfigAsync,
+    getVenueAsync,
+    getSessionSecret,
+    computeCallerHash,
+    signVenueStaffSession,
+    verifyVenueStaffSession,
+    verifyVenuePin,
+    setVenuePin,
+    resetVenueLockout,
     _setSupabaseClient: _setCoreSupabaseClient
 } = require('./utils/arcade-core');
 
 let supabase = getSupabase();
+
+/**
+ * Authenticates staff / moderator request:
+ * 1. Checks Bearer token or x-moderator-token / x-staff-token / x-admin-token or body tokens.
+ * 2. If token === ADMIN_SECRET -> allows with superadmin role (can manage all venues).
+ * 3. Enforces mandatory ARCADE_SESSION_SECRET (no fallback to ADMIN_TOKEN or STRIPE_WEBHOOK_SECRET).
+ *    If ARCADE_SESSION_SECRET is missing, fails closed with 503 SESSION_SECRET_MISSING.
+ * 4. In test mode: allows 'test-moderator-token' for venue-demo-01 tables, rejecting cross-venue access.
+ * 5. Verifies signed HMAC venue staff session token.
+ * 6. Checks venue exists and session.pin_version === venue.pin_version (instant revocation on PIN change).
+ * 7. Checks table belongs to the venue (tableConfig.venue_id === session.venue_id, returning 403 FORBIDDEN_TABLE otherwise).
+ * 8. Returns { ok: true, role: 'venue_staff', venueId, venueName, authMethod: 'shared_venue_pin' }
+ */
+async function authenticateModerator(event, body, tableId, isTestMode) {
+    const headers = event?.headers || {};
+    const authHeader = headers['authorization'] || headers['Authorization'] || '';
+    const bearerToken = authHeader.replace(/^Bearer\s+/i, '').trim();
+    const customHeaderToken = (headers['x-moderator-token'] || headers['x-staff-token'] || headers['x-admin-token'] || '').trim();
+    const bodyToken = (body?.moderatorToken || body?.staffToken || body?.adminToken || '').trim();
+
+    const token = bearerToken || customHeaderToken || bodyToken;
+
+    if (!token) {
+        return {
+            ok: false,
+            statusCode: 401,
+            code: 'UNAUTHORIZED',
+            error: 'Valtuutus puuttuu: Kirjaudu sisään toimipaikan henkilökunnan PIN-koodilla.'
+        };
+    }
+
+    // 1. Superadmin secret bypass
+    const adminSecret = getAdminSecret();
+    if (adminSecret && token === adminSecret) {
+        return {
+            ok: true,
+            role: 'superadmin',
+            venueId: 'superadmin',
+            venueName: 'Subsoccer Platform Superadmin',
+            authMethod: 'admin_secret'
+        };
+    }
+
+    // 2. Enforce mandatory ARCADE_SESSION_SECRET (fail-closed if missing)
+    const sessionSecret = getSessionSecret(isTestMode);
+    if (!sessionSecret) {
+        return {
+            ok: false,
+            statusCode: 503,
+            code: 'SESSION_SECRET_MISSING',
+            error: 'Palvelimen konfiguraatiovirhe: ARCADE_SESSION_SECRET puuttuu.'
+        };
+    }
+
+    // 3. Test mode fallback with venue-demo-01 scoping
+    if (isTestMode && (token === 'test-moderator-token' || token.startsWith('test-mod-'))) {
+        const cfg = await getTableConfigAsync(tableId, isTestMode);
+        if (cfg?.venue_id && cfg.venue_id !== 'venue-demo-01') {
+            return {
+                ok: false,
+                statusCode: 403,
+                code: 'FORBIDDEN_TABLE',
+                error: `Sinulla ei ole käyttöoikeutta pöytään '${tableId}'.`
+            };
+        }
+        return {
+            ok: true,
+            role: 'venue_staff',
+            venueId: 'venue-demo-01',
+            venueName: 'Mall of Tripla Demo Venue',
+            authMethod: 'shared_venue_pin'
+        };
+    }
+
+    // 4. Verify signed venue staff session
+    const verifyRes = verifyVenueStaffSession(token, isTestMode);
+    if (!verifyRes.ok) {
+        return {
+            ok: false,
+            statusCode: verifyRes.statusCode || 401,
+            code: verifyRes.code || 'INVALID_TOKEN',
+            error: verifyRes.error || 'Virheellinen henkilökunnan istunto.'
+        };
+    }
+
+    const session = verifyRes.session;
+    if (!session?.venue_id) {
+        return {
+            ok: false,
+            statusCode: 401,
+            code: 'INVALID_TOKEN',
+            error: 'Istuntotunnuksesta puuttuu toimipaikkatieto.'
+        };
+    }
+
+    // 5. Verify venue and PIN version (instant invalidation on PIN rotation)
+    const venue = await getVenueAsync(session.venue_id, isTestMode);
+    if (!venue) {
+        return {
+            ok: false,
+            statusCode: 404,
+            code: 'VENUE_NOT_FOUND',
+            error: 'Toimipaikkaa ei löydy.'
+        };
+    }
+
+    if (session.pin_version !== venue.pin_version) {
+        return {
+            ok: false,
+            statusCode: 401,
+            code: 'SESSION_REVOKED',
+            error: 'Toimipaikan PIN-koodi on vaihdettu. Kirjaudu sisään uudella PIN-koodilla.'
+        };
+    }
+
+    // 6. Verify table scoping (table belongs to the session's venue)
+    const tableCfg = await getTableConfigAsync(tableId, isTestMode);
+    if (!tableCfg) {
+        return {
+            ok: false,
+            statusCode: 404,
+            code: 'TABLE_NOT_FOUND',
+            error: `Pöytää '${tableId}' ei löydy.`
+        };
+    }
+
+    if (tableCfg.venue_id && tableCfg.venue_id !== session.venue_id) {
+        return {
+            ok: false,
+            statusCode: 403,
+            code: 'FORBIDDEN_TABLE',
+            error: `Sinulla ei ole käyttöoikeutta pöytään '${tableId}'.`
+        };
+    }
+
+    return {
+        ok: true,
+        role: 'venue_staff',
+        venueId: session.venue_id,
+        venueName: session.venue_name,
+        authMethod: 'shared_venue_pin'
+    };
+}
 
 
 function getTableConfig(tableId, isTestMode) {
@@ -279,6 +434,7 @@ exports.handler = async function (event, context) {
                 }
             } else {
                 const cfg = memoryDb.tableConfigs.get(tableId) || tableConfig;
+                if (cfg) tableConfig = cfg;
                 const existingSession = memoryDb.sessions.get(tableId);
 
                 if (cfg?.lock_state === 'error_locked' || existingSession?.status === 'hardware_uncertain') {
@@ -323,6 +479,7 @@ exports.handler = async function (event, context) {
                     success: true,
                     tableId,
                     state: tableState,
+                    pendingMaintenanceLock: Boolean(tableConfig?.pending_maintenance_lock),
                     timeRemainingSecs,
                     expiresAt: activeExpiresAt,
                     outputId: tableConfig?.switch_output_id || 1,
@@ -358,6 +515,88 @@ exports.handler = async function (event, context) {
             const { action } = body;
             const table = (body.table || '').trim();
 
+            // ─── ACTION: SET VENUE PIN (Superadmin Only) ───
+            if (action === 'set-venue-pin') {
+                if (!isAuthorizedAdmin(event, body)) {
+                    return {
+                        statusCode: 401,
+                        headers: CORS_HEADERS,
+                        body: JSON.stringify({ error: 'Unauthorized: Valid admin token required', code: 'UNAUTHORIZED' })
+                    };
+                }
+
+                const venueId = (body.venueId || '').trim();
+                const newPin = String(body.newPin || '').trim();
+
+                if (!venueId || !newPin || newPin.length < 4 || newPin.length > 8) {
+                    return {
+                        statusCode: 400,
+                        headers: CORS_HEADERS,
+                        body: JSON.stringify({ error: 'Invalid venueId or newPin (must be 4-8 chars)', code: 'INVALID_PARAMETERS' })
+                    };
+                }
+
+                const res = await setVenuePin({ venueId, newPin, isTestMode });
+                if (!res.success) {
+                    return {
+                        statusCode: res.statusCode || 500,
+                        headers: CORS_HEADERS,
+                        body: JSON.stringify({ error: res.error || 'Failed to set venue PIN', code: res.code || 'SET_PIN_FAILED' })
+                    };
+                }
+
+                return {
+                    statusCode: 200,
+                    headers: CORS_HEADERS,
+                    body: JSON.stringify({
+                        success: true,
+                        action: 'set-venue-pin',
+                        venueId: res.venue_id,
+                        pinVersion: res.pin_version
+                    })
+                };
+            }
+
+            // ─── ACTION: RESET VENUE LOCKOUT (Superadmin Only) ───
+            if (action === 'reset-venue-lockout') {
+                if (!isAuthorizedAdmin(event, body)) {
+                    return {
+                        statusCode: 401,
+                        headers: CORS_HEADERS,
+                        body: JSON.stringify({ error: 'Unauthorized: Valid admin token required', code: 'UNAUTHORIZED' })
+                    };
+                }
+
+                const venueId = (body.venueId || '').trim();
+                if (!venueId) {
+                    return {
+                        statusCode: 400,
+                        headers: CORS_HEADERS,
+                        body: JSON.stringify({ error: 'Missing venueId', code: 'INVALID_PARAMETERS' })
+                    };
+                }
+
+                const res = await resetVenueLockout({ venueId, isTestMode });
+                if (!res.success) {
+                    return {
+                        statusCode: res.statusCode || 500,
+                        headers: CORS_HEADERS,
+                        body: JSON.stringify({ error: res.error || 'Failed to reset lockout', code: res.code || 'RESET_LOCKOUT_FAILED' })
+                    };
+                }
+
+                return {
+                    statusCode: 200,
+                    headers: CORS_HEADERS,
+                    body: JSON.stringify({
+                        success: true,
+                        action: 'reset-venue-lockout',
+                        venueId: res.venue_id,
+                        message: 'Toimipaikan lukitus ja yrityslaskurit on nollattu.'
+                    })
+                };
+            }
+
             // ─── VALIDATION 1: TABLE PARAMETER ───
             if (!table) {
                 return {
@@ -375,6 +614,98 @@ exports.handler = async function (event, context) {
                     body: JSON.stringify({ 
                         error: `Only pilot table '${pilotTableId}' is supported in this deployment.`,
                         code: 'TABLE_NOT_IN_PILOT'
+                    })
+                };
+            }
+
+            // ─── ACTION: STAFF PIN LOGIN ───
+            if (action === 'staff-pin-login') {
+                const rawPin = String(body.pin || '').trim();
+                if (!rawPin) {
+                    return {
+                        statusCode: 400,
+                        headers: CORS_HEADERS,
+                        body: JSON.stringify({ error: 'PIN-koodi puuttuu.', code: 'INVALID_PARAMETERS' })
+                    };
+                }
+
+                const sessionSecret = getSessionSecret(isTestMode);
+                if (!sessionSecret) {
+                    return {
+                        statusCode: 503,
+                        headers: CORS_HEADERS,
+                        body: JSON.stringify({
+                            error: 'Palvelimen konfiguraatiovirhe: ARCADE_SESSION_SECRET puuttuu.',
+                            code: 'SESSION_SECRET_MISSING'
+                        })
+                    };
+                }
+
+                const cfg = await getTableConfigAsync(table, isTestMode);
+                if (!cfg) {
+                    return {
+                        statusCode: 404,
+                        headers: CORS_HEADERS,
+                        body: JSON.stringify({ error: `Pöytää '${table}' ei löydy.`, code: 'TABLE_NOT_FOUND' })
+                    };
+                }
+
+                const clientFingerprint = (body.clientFingerprint || body.clientToken || '').trim();
+                const clientIp = event.headers?.['x-forwarded-for']?.split(',')[0]?.trim() || event.headers?.['client-ip'] || 'unknown';
+                const callerHash = computeCallerHash(cfg.venue_id, clientFingerprint, clientIp);
+
+                const verifyRes = await verifyVenuePin({
+                    tableId: table,
+                    pin: rawPin,
+                    callerHash,
+                    isTestMode
+                });
+
+                if (!verifyRes.success) {
+                    return {
+                        statusCode: verifyRes.statusCode || 401,
+                        headers: CORS_HEADERS,
+                        body: JSON.stringify({
+                            error: verifyRes.error || 'Virheellinen PIN-koodi.',
+                            code: verifyRes.code || 'INVALID_PIN',
+                            attemptsRemaining: verifyRes.attempts_remaining,
+                            locked: verifyRes.locked,
+                            lockedUntil: verifyRes.locked_until,
+                            venueLocked: verifyRes.venue_locked
+                        })
+                    };
+                }
+
+                let sessionToken;
+                try {
+                    sessionToken = signVenueStaffSession({
+                        venueId: verifyRes.venue_id,
+                        venueName: verifyRes.venue_name,
+                        pinVersion: verifyRes.pin_version,
+                        isTestMode
+                    });
+                } catch (err) {
+                    return {
+                        statusCode: 503,
+                        headers: CORS_HEADERS,
+                        body: JSON.stringify({
+                            error: 'Palvelimen konfiguraatiovirhe: ARCADE_SESSION_SECRET puuttuu.',
+                            code: 'SESSION_SECRET_MISSING'
+                        })
+                    };
+                }
+
+                return {
+                    statusCode: 200,
+                    headers: CORS_HEADERS,
+                    body: JSON.stringify({
+                        success: true,
+                        action: 'staff-pin-login',
+                        token: sessionToken,
+                        venueId: verifyRes.venue_id,
+                        venueName: verifyRes.venue_name,
+                        pinVersion: verifyRes.pin_version,
+                        expiresAt: new Date(Date.now() + 8 * 3600 * 1000).toISOString()
                     })
                 };
             }
@@ -589,6 +920,131 @@ exports.handler = async function (event, context) {
                         tableId: table,
                         outputId,
                         hardware: commandResult
+                    })
+                };
+            }
+
+            // ─── ACTION: SET TABLE MAINTENANCE (Staff / Moderator) ───
+            if (action === 'set-maintenance') {
+                const auth = await authenticateModerator(event, body, table, isTestMode);
+                if (!auth.ok) {
+                    return {
+                        statusCode: auth.statusCode,
+                        headers: CORS_HEADERS,
+                        body: JSON.stringify({ error: auth.error, code: auth.code })
+                    };
+                }
+
+                const enabled = body.enabled !== false;
+                const reason = body.reason || null;
+
+                const res = await setTableMaintenance({
+                    tableId: table,
+                    maintenanceEnabled: enabled,
+                    moderatorUserId: auth.user?.id || null,
+                    moderatorEmail: auth.user?.email || (auth.venueName ? `${auth.venueName} staff` : 'moderator'),
+                    venueId: auth.venueId || null,
+                    authMethod: auth.authMethod || null,
+                    reason,
+                    isTestMode
+                });
+
+                if (!res.success) {
+                    return {
+                        statusCode: res.statusCode || 500,
+                        headers: CORS_HEADERS,
+                        body: JSON.stringify({ error: res.error || 'Huoltotilan asetus epäonnistui', code: res.code || 'MAINTENANCE_ERROR' })
+                    };
+                }
+
+                return {
+                    statusCode: 200,
+                    headers: CORS_HEADERS,
+                    body: JSON.stringify({
+                        success: true,
+                        action: 'set-maintenance',
+                        tableId: table,
+                        lockState: res.lock_state,
+                        pendingMaintenanceLock: Boolean(res.pending_maintenance_lock),
+                        isDeferred: Boolean(res.is_deferred),
+                        message: res.message
+                    })
+                };
+            }
+
+            // ─── ACTION: GRANT MODERATOR FREE PLAY (Staff / Moderator) ───
+            if (action === 'grant-free-play') {
+                const auth = await authenticateModerator(event, body, table, isTestMode);
+                if (!auth.ok) {
+                    return {
+                        statusCode: auth.statusCode,
+                        headers: CORS_HEADERS,
+                        body: JSON.stringify({ error: auth.error, code: auth.code })
+                    };
+                }
+
+                const durationMinutes = Number(body.durationMinutes) || 5;
+                const clientToken = (body.clientToken || `tok-free-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`).trim();
+
+                // 1. Create free play hold (atomic hold with amount_cents = 0)
+                const holdRes = await createFreePlayHold({
+                    tableId: table,
+                    durationMinutes,
+                    moderatorUserId: auth.user?.id || null,
+                    moderatorEmail: auth.user?.email || (auth.venueName ? `${auth.venueName} staff` : 'moderator'),
+                    venueId: auth.venueId || null,
+                    authMethod: auth.authMethod || null,
+                    clientToken,
+                    isTestMode
+                });
+
+                if (!holdRes.success) {
+                    return {
+                        statusCode: holdRes.statusCode || 409,
+                        headers: CORS_HEADERS,
+                        body: JSON.stringify({
+                            error: holdRes.error || 'Pöydän varaaminen ilmaispeliin epäonnistui.',
+                            code: holdRes.code || 'FREE_PLAY_HOLD_FAILED',
+                            lockState: holdRes.lockState
+                        })
+                    };
+                }
+
+                // 2. Claim and activate free play order (same atomic pipeline as paid order)
+                const actRes = await claimAndActivateOrder({
+                    orderId: holdRes.orderId,
+                    paymentIntent: null,
+                    isFreePlay: true,
+                    tableId: table,
+                    durationMinutes,
+                    isTestMode
+                });
+
+                if (!actRes.success) {
+                    return {
+                        statusCode: actRes.statusCode || 502,
+                        headers: CORS_HEADERS,
+                        body: JSON.stringify({
+                            error: actRes.error || 'Ilmaispelin aktivointi laitteelle epäonnistui.',
+                            code: actRes.code || 'ACTIVATION_FAILED',
+                            orderId: holdRes.orderId,
+                            hardwareUncertain: actRes.code === 'HARDWARE_UNCERTAIN'
+                        })
+                    };
+                }
+
+                return {
+                    statusCode: 200,
+                    headers: CORS_HEADERS,
+                    body: JSON.stringify({
+                        success: true,
+                        action: 'grant-free-play',
+                        tableId: table,
+                        orderId: holdRes.orderId,
+                        sessionId: actRes.sessionId,
+                        durationMinutes,
+                        expiresAt: actRes.expiresAt,
+                        hardware: actRes.hardware
                     })
                 };
             }

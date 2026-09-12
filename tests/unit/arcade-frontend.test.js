@@ -280,4 +280,115 @@ describe('Arcade Frontend Client (arcade.html)', () => {
 
         vi.useRealTimers();
     });
+
+    it('opens staff modal and switches to dashboard upon quick login in test mode', () => {
+        const staffBtn = document.getElementById('btnOpenStaffModal');
+        expect(staffBtn).not.toBeNull();
+
+        // Open modal
+        staffBtn.click();
+        const modal = document.getElementById('staffModalBackdrop');
+        expect(modal.style.display).toBe('flex');
+
+        // Initially login form is visible
+        const loginForm = document.getElementById('staffLoginForm');
+        const dashboard = document.getElementById('staffDashboard');
+        expect(loginForm.style.display).toBe('block');
+        expect(dashboard.style.display).toBe('none');
+
+        // Click quick login
+        const quickBtn = document.getElementById('btnStaffQuickLogin');
+        quickBtn.click();
+
+        // Dashboard is now visible
+        expect(loginForm.style.display).toBe('none');
+        expect(dashboard.style.display).toBe('block');
+        expect(document.getElementById('staffUserEmail').textContent).toContain('staff.demo@subsoccer.com');
+        expect(staffBtn.classList.contains('logged-in')).toBe(true);
+
+        // Verify safety notice exists
+        expect(dashboard.textContent).toContain('TURVALLISUUSOHJE');
+        expect(dashboard.textContent).toContain('Short ON');
+
+        // Close modal
+        window.closeStaffModal();
+        expect(modal.style.display).toBe('none');
+    });
+
+    it('shows pending maintenance alert in moderator drawer when pendingMaintenanceLock is true', () => {
+        window.quickLoginStaff();
+        window.openStaffModal();
+
+        // Simulate status data with pendingMaintenanceLock: true
+        window.updateStaffDrawerUI({
+            state: 'active',
+            pendingMaintenanceLock: true
+        });
+
+        const pendingAlert = document.getElementById('staffPendingAlert');
+        expect(pendingAlert.style.display).toBe('block');
+
+        const maintLabel = document.getElementById('btnMaintenanceLabel');
+        expect(maintLabel.textContent).toContain('Peruuta odottava huoltotila');
+
+        // Table active -> free play button is disabled
+        const freePlayBtn = document.getElementById('btnGrantFreePlay');
+        expect(freePlayBtn.disabled).toBe(true);
+    });
+
+    it('authenticates staff using venue PIN and stores token strictly in sessionStorage', async () => {
+        window.fetch = vi.fn().mockImplementation(async (url, opts) => {
+            const body = JSON.parse(opts?.body || '{}');
+            if (body.action === 'staff-pin-login') {
+                if (body.pin === '1234') {
+                    return {
+                        ok: true,
+                        status: 200,
+                        json: async () => ({
+                            success: true,
+                            action: 'staff-pin-login',
+                            token: 'mock-signed-pin-token-xyz',
+                            venueId: 'venue-demo-01',
+                            venueName: 'Mall of Tripla Demo Venue',
+                            pinVersion: 1
+                        })
+                    };
+                } else {
+                    return {
+                        ok: false,
+                        status: 401,
+                        json: async () => ({
+                            error: 'Virheellinen PIN-koodi.',
+                            attemptsRemaining: 4
+                        })
+                    };
+                }
+            }
+            return { ok: true, status: 200, json: async () => ({ success: true }) };
+        });
+
+        window.openStaffModal();
+
+        const pinInput = document.getElementById('staffPin');
+        const loginBtn = document.getElementById('btnStaffSubmitLogin');
+        const errorBox = document.getElementById('staffLoginError');
+
+        // 1. Wrong PIN
+        pinInput.value = '9999';
+        await window.loginStaff();
+
+        expect(errorBox.style.display).toBe('block');
+        expect(errorBox.textContent).toContain('Yrityksiä jäljellä: 4');
+        expect(window.sessionStorage.getItem('arcade_staff_session')).toBeNull();
+
+        // 2. Correct PIN
+        pinInput.value = '1234';
+        await window.loginStaff();
+
+        expect(window.sessionStorage.getItem('arcade_staff_session')).toBe('mock-signed-pin-token-xyz');
+        expect(document.getElementById('staffLoginForm').style.display).toBe('none');
+        expect(document.getElementById('staffDashboard').style.display).toBe('block');
+        expect(document.getElementById('staffUserEmail').textContent).toContain('Mall of Tripla Demo Venue');
+    });
 });
+

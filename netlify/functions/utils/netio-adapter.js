@@ -49,6 +49,7 @@ class NetioAdapter {
         this.mockStatusFails = config.mockStatusFails ?? false;
         this.mockStartFails = config.mockStartFails ?? false;
         this.mockVerifyOffThrows = config.mockVerifyOffThrows ?? false;
+        this.mockUptime = config.mockUptime ?? null;
 
         if (!this.isMock && !this.endpoint) {
             throw new Error('NETIO configuration missing: NETIO_BASE_URL (or NETIO_ENDPOINT) must be provided in non-test mode');
@@ -194,7 +195,9 @@ class NetioAdapter {
                 device: {
                     model: 'NETIO PowerBOX 3PF',
                     firmware: '4.0.0-sim',
-                    numOutputs: this._mockOutputs.length
+                    numOutputs: this._mockOutputs.length,
+                    uptime: this.mockUptime !== null ? this.mockUptime : 1200,
+                    Uptime: this.mockUptime !== null ? this.mockUptime : 1200
                 },
                 outputs: this._mockOutputs.map(o => ({
                     id: o.id,

@@ -35,6 +35,21 @@ const CORS_HEADERS = {
     'Content-Type': 'application/json'
 };
 
+let stripeClient = null;
+
+function getStripeClient() {
+    if (stripeClient) return stripeClient;
+    const key = process.env.STRIPE_SECRET_KEY;
+    if (key) {
+        return require('stripe')(key);
+    }
+    return null;
+}
+
+function _setStripeClient(client) {
+    stripeClient = client;
+}
+
 let supabase = null;
 
 function getSupabase() {
@@ -60,12 +75,18 @@ getSupabase();
 // In-memory simulation fallback storage (used when in test mode or without Supabase credentials)
 const memoryDb = {
     tableConfigs: new Map([
-        ['demo-pulse-01', { table_id: 'demo-pulse-01', is_enabled: true, lock_state: 'available', switch_output_id: 1, is_free_play_allowed: true, device_endpoint: null }],
-        ['demo-arcade-02', { table_id: 'demo-arcade-02', is_enabled: true, lock_state: 'available', switch_output_id: 1, is_free_play_allowed: false, device_endpoint: null }],
-        ['demo-locked-03', { table_id: 'demo-locked-03', is_enabled: false, lock_state: 'maintenance_locked', switch_output_id: 1, is_free_play_allowed: false, device_endpoint: null }],
-        ['subsoccer-tripla-live-01', { table_id: 'subsoccer-tripla-live-01', is_enabled: true, lock_state: 'available', switch_output_id: 1, is_free_play_allowed: false, device_endpoint: null }],
-        ['subsoccer-freeplay-venue-01', { table_id: 'subsoccer-freeplay-venue-01', is_enabled: true, lock_state: 'available', switch_output_id: 1, is_free_play_allowed: true, device_endpoint: null }]
+        ['demo-pulse-01', { table_id: 'demo-pulse-01', venue_id: 'venue-demo-01', is_enabled: true, lock_state: 'available', switch_output_id: 1, is_free_play_allowed: true, device_endpoint: null }],
+        ['demo-arcade-02', { table_id: 'demo-arcade-02', venue_id: 'venue-demo-01', is_enabled: true, lock_state: 'available', switch_output_id: 1, is_free_play_allowed: false, device_endpoint: null }],
+        ['demo-locked-03', { table_id: 'demo-locked-03', venue_id: 'venue-demo-01', is_enabled: false, lock_state: 'maintenance_locked', switch_output_id: 1, is_free_play_allowed: false, device_endpoint: null }],
+        ['subsoccer-tripla-live-01', { table_id: 'subsoccer-tripla-live-01', venue_id: 'venue-tripla', is_enabled: true, lock_state: 'available', switch_output_id: 1, is_free_play_allowed: false, device_endpoint: null }],
+        ['subsoccer-freeplay-venue-01', { table_id: 'subsoccer-freeplay-venue-01', venue_id: 'venue-freeplay-01', is_enabled: true, lock_state: 'available', switch_output_id: 1, is_free_play_allowed: true, device_endpoint: null }]
     ]),
+    venues: new Map([
+        ['venue-demo-01', { venue_id: 'venue-demo-01', name: 'Mall of Tripla Demo Venue', pin_hash: null, pin_version: 1, venue_failed_attempts: 0, venue_locked_until: null }],
+        ['venue-tripla', { venue_id: 'venue-tripla', name: 'Mall of Tripla Subsoccer Lounge', pin_hash: null, pin_version: 1, venue_failed_attempts: 0, venue_locked_until: null }],
+        ['venue-freeplay-01', { venue_id: 'venue-freeplay-01', name: 'Freeplay Venue', pin_hash: null, pin_version: 1, venue_failed_attempts: 0, venue_locked_until: null }]
+    ]),
+    pinAttempts: new Map(), // key: `${venue_id}:${caller_hash}` -> { failed_attempts, locked_until, last_attempt_at }
     sessions: new Map(), // key: table_id -> active session object
     orders: new Map(),   // key: order_id -> order details & hold status
     holds: new Map(),    // key: table_id -> active order_id
@@ -153,6 +174,7 @@ function getTableConfig(tableId, isTestMode) {
     if (isTestMode && tableId && tableId.startsWith('test-')) {
         const dynamicCfg = {
             table_id: tableId,
+            venue_id: 'venue-demo-01',
             is_enabled: true,
             lock_state: 'available',
             switch_output_id: 1,
@@ -180,6 +202,23 @@ async function getTableConfigAsync(tableId, isTestMode) {
         }
     }
     return getTableConfig(tableId, isTestMode);
+}
+
+async function getVenueAsync(venueId, isTestMode) {
+    const sb = getSupabase();
+    if (sb) {
+        try {
+            const { data: venue } = await sb
+                .from('arcade_venues')
+                .select('*')
+                .eq('venue_id', venueId)
+                .maybeSingle();
+            if (venue) return venue;
+        } catch (e) {
+            console.warn('[ARCADE-CORE] Failed to load venue from Supabase:', e.message);
+        }
+    }
+    return memoryDb.venues.get(venueId) || null;
 }
 
 function getNetioAdapter(tableConfig, isTestMode) {
@@ -231,9 +270,67 @@ async function reconcileTableState(tableId, tableConfig, netio, isTestMode) {
         const session = memoryDb.sessions.get(tableId);
         if (!session) return;
 
-        // Active or hardware_uncertain session whose scheduled time + 4s has elapsed
+        const targetOutputId = tableConfig?.switch_output_id || 1;
+
+        // A. Premature cutoff detection: active session before expiresAt - 15s where hardware is confirmed OFF (State === 0)
+        if (session.status === 'active' && session.expiresAt && now < (session.expiresAt - 15000)) {
+            let isPrematureOff = false;
+            try {
+                if (netio && typeof netio.verifyConfirmedOff === 'function') {
+                    if (netio.isMock) {
+                        isPrematureOff = (netio.mockStatusOutputState === 0 || netio.mockPrematureOff === true);
+                    } else {
+                        isPrematureOff = (await netio.verifyConfirmedOff(targetOutputId) === true);
+                    }
+                }
+            } catch (err) {
+                isPrematureOff = false;
+            }
+
+            if (isPrematureOff === true) {
+                let uptime = null;
+                try {
+                    const st = await netio.getStatus();
+                    uptime = st?.device?.uptime ?? st?.device?.Uptime ?? null;
+                } catch (e) {}
+
+                // Agent.Uptime < 120 proves device restarted, not power loss.
+                const reason = (uptime !== null && uptime < 120) ? 'device_restarted' : 'premature_cutoff';
+                session.status = 'failed';
+                session.error_reason = reason;
+
+                const matchedOrder = Array.from(memoryDb.orders.values()).find(o => o.tableId === tableId && (o.sessionId === session.id || o.status === 'active'));
+                if (matchedOrder) {
+                    matchedOrder.status = 'interrupted';
+                    matchedOrder.refundReason = reason;
+                    if (matchedOrder.amountCents > 0) {
+                        matchedOrder.refundStatus = 'refund_required';
+                    }
+                }
+
+                if (tableConfig) {
+                    if (tableConfig.pending_maintenance_lock || tableConfig.lock_state === 'maintenance_locked') {
+                        tableConfig.lock_state = 'maintenance_locked';
+                        tableConfig.pending_maintenance_lock = false;
+                    } else {
+                        tableConfig.lock_state = 'available';
+                    }
+                }
+                memoryDb.sessions.delete(tableId);
+                saveMemorySessions();
+                memoryDb.events.push({
+                    table_id: tableId,
+                    session_id: session.id,
+                    event_type: 'interrupted',
+                    payload: { reason, uptime, refundRequired: matchedOrder?.amountCents > 0 },
+                    created_at: new Date().toISOString()
+                });
+                return;
+            }
+        }
+
+        // B. Normal session expiration: scheduled time + 4s has elapsed
         if ((session.status === 'active' || session.status === 'hardware_uncertain') && session.expiresAt && now > (session.expiresAt + 4000)) {
-            const targetOutputId = tableConfig?.switch_output_id || 1;
             let isOff = false;
             try {
                 if (netio && typeof netio.verifyConfirmedOff === 'function') {
@@ -247,7 +344,12 @@ async function reconcileTableState(tableId, tableConfig, netio, isTestMode) {
             if (isOff === true) {
                 memoryDb.sessions.delete(tableId);
                 if (tableConfig) {
-                    tableConfig.lock_state = 'available';
+                    if (tableConfig.pending_maintenance_lock || tableConfig.lock_state === 'maintenance_locked') {
+                        tableConfig.lock_state = 'maintenance_locked';
+                        tableConfig.pending_maintenance_lock = false;
+                    } else {
+                        tableConfig.lock_state = 'available';
+                    }
                 }
                 const matchedOrder = Array.from(memoryDb.orders.values()).find(o => o.tableId === tableId && (o.sessionId === session.id || o.status === 'hardware_uncertain' || o.status === 'active'));
                 if (matchedOrder) {
@@ -299,8 +401,105 @@ async function reconcileTableState(tableId, tableConfig, netio, isTestMode) {
                     ? new Date(currentSession.expires_at).getTime() 
                     : (new Date(currentSession.requested_at).getTime() + (currentSession.duration_seconds || 900) * 1000);
 
+                const targetOutputId = tableConfig?.switch_output_id || 1;
+
+                // A. Premature cutoff in Supabase
+                if (currentSession.status === 'active' && now < (expiresAtMs - 15000)) {
+                    let isPrematureOff = false;
+                    try {
+                        if (netio && typeof netio.verifyConfirmedOff === 'function') {
+                            if (netio.isMock) {
+                                isPrematureOff = (netio.mockStatusOutputState === 0 || netio.mockPrematureOff === true);
+                            } else {
+                                isPrematureOff = (await netio.verifyConfirmedOff(targetOutputId) === true);
+                            }
+                        }
+                    } catch (probeErr) {
+                        isPrematureOff = false;
+                    }
+
+                    if (isPrematureOff === true) {
+                        let uptime = null;
+                        try {
+                            const st = await netio.getStatus();
+                            uptime = st?.device?.uptime ?? st?.device?.Uptime ?? null;
+                        } catch (e) {}
+
+                        // Agent.Uptime < 120 proves device restarted, not power loss.
+                        const reason = (uptime !== null && uptime < 120) ? 'device_restarted' : 'premature_cutoff';
+
+                        const { data: matchedOrder } = await sb
+                            .from('arcade_orders')
+                            .select('*')
+                            .eq('table_id', tableId)
+                            .eq('session_id', currentSession.id)
+                            .eq('status', 'active')
+                            .maybeSingle();
+
+                        if (matchedOrder) {
+                            try {
+                                await sb.rpc('arcade_record_premature_cutoff', {
+                                    p_table_id: tableId,
+                                    p_order_id: matchedOrder.order_id,
+                                    p_session_id: currentSession.id,
+                                    p_reason: reason,
+                                    p_device_uptime: uptime
+                                });
+                            } catch (rpcErr) {
+                                console.error('[RECONCILIATION ERROR] arcade_record_premature_cutoff failed:', rpcErr.message);
+                            }
+
+                            // If paid order, initiate idempotent Stripe refund
+                            if (matchedOrder.amount_cents > 0 && matchedOrder.stripe_payment_intent_id) {
+                                try {
+                                    const stripe = getStripeClient();
+                                    if (stripe && stripe.refunds) {
+                                        const ref = await stripe.refunds.create({
+                                            payment_intent: matchedOrder.stripe_payment_intent_id,
+                                            reason: 'requested_by_customer'
+                                        }, {
+                                            idempotencyKey: `ref-${matchedOrder.order_id}`
+                                        });
+
+                                        if (ref.status === 'succeeded') {
+                                            await sb.from('arcade_orders').update({
+                                                refund_status: 'refund_completed',
+                                                refund_id: ref.id,
+                                                updated_at: new Date().toISOString()
+                                            }).eq('order_id', matchedOrder.order_id);
+                                        } else {
+                                            await sb.from('arcade_orders').update({
+                                                refund_status: 'refund_initiated',
+                                                refund_id: ref.id,
+                                                updated_at: new Date().toISOString()
+                                            }).eq('order_id', matchedOrder.order_id);
+                                        }
+                                    }
+                                } catch (refErr) {
+                                    console.error('[STRIPE REFUND ERROR] Idempotent refund failed:', refErr.message);
+                                    // Fail-closed: keep in refund_required state in DB
+                                }
+                            }
+                        } else {
+                            await sb.from('arcade_sessions').update({
+                                status: 'failed',
+                                error_reason: reason,
+                                confirmed_off_at: new Date().toISOString()
+                            }).eq('id', currentSession.id);
+
+                            const targetLock = (tableConfig?.pending_maintenance_lock || tableConfig?.lock_state === 'maintenance_locked') ? 'maintenance_locked' : 'available';
+                            await sb.from('arcade_table_configs').update({
+                                lock_state: targetLock,
+                                pending_maintenance_lock: false,
+                                updated_at: new Date().toISOString()
+                            }).eq('table_id', tableId);
+                        }
+                        return;
+                    }
+                }
+
+                // B. Normal session expiration in Supabase
                 if (now > (expiresAtMs + 4000)) {
-                    const targetOutputId = tableConfig?.switch_output_id || 1;
                     let isOff = false;
                     try {
                         if (netio && typeof netio.verifyConfirmedOff === 'function') {
@@ -348,9 +547,10 @@ async function reconcileTableState(tableId, tableConfig, netio, isTestMode) {
                                 .update({ status: 'completed', confirmed_off_at: confirmedOffAt })
                                 .eq('id', currentSession.id);
 
+                            const targetLock = (tableConfig?.pending_maintenance_lock || tableConfig?.lock_state === 'maintenance_locked') ? 'maintenance_locked' : 'available';
                             await sb
                                 .from('arcade_table_configs')
-                                .update({ lock_state: 'available' })
+                                .update({ lock_state: targetLock, pending_maintenance_lock: false })
                                 .eq('table_id', tableId);
                         }
 
@@ -482,13 +682,13 @@ async function createPaymentHold({ tableId, durationMinutes, clientToken, isTest
     const netio = getNetioAdapter(cfg, isTestMode);
     await reconcileTableState(tableId, cfg, netio, isTestMode);
 
-    if (!cfg.is_enabled || cfg.lock_state !== 'available') {
+    if (!cfg.is_enabled || cfg.lock_state !== 'available' || cfg.pending_maintenance_lock) {
         return { 
             success: false, 
             statusCode: 423, 
             code: 'TABLE_LOCKED', 
             error: 'Table is currently disabled or locked for maintenance.',
-            lockState: cfg.lock_state 
+            lockState: cfg.pending_maintenance_lock ? 'pending_maintenance' : cfg.lock_state 
         };
     }
 
@@ -594,6 +794,271 @@ async function releasePaymentHold({ tableId, orderId, reason }) {
         return true;
     }
     return false;
+}
+
+/**
+ * Creates an atomic table hold for moderator free play (amount_cents = 0).
+ */
+async function createFreePlayHold({ tableId, durationMinutes = 5, venueId = null, authMethod = 'shared_venue_pin', clientToken = null, isTestMode = false }) {
+    if (!tableId) {
+        return { success: false, statusCode: 400, code: 'INVALID_PARAMETERS', error: "Missing 'tableId' parameter" };
+    }
+
+    const token = (clientToken || `tok-free-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`).trim();
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+    const sb = getSupabase();
+    if (sb) {
+        try {
+            const { data, error } = await sb.rpc('arcade_create_free_play_hold', {
+                p_table_id: tableId,
+                p_duration_minutes: durationMinutes,
+                p_venue_id: venueId,
+                p_auth_method: authMethod || 'shared_venue_pin',
+                p_client_token_hash: tokenHash
+            });
+
+            if (error) {
+                console.error('[SUPABASE RPC ERROR] arcade_create_free_play_hold:', error.message);
+                return { success: false, statusCode: 500, code: 'DB_RPC_ERROR', error: error.message };
+            }
+
+            if (!data?.success) {
+                return {
+                    success: false,
+                    statusCode: data?.statusCode || 409,
+                    code: data?.code || 'TABLE_HOLD_FAILED',
+                    error: data?.error || 'Pöydän varaaminen ilmaispeliin epäonnistui.'
+                };
+            }
+
+            return {
+                success: true,
+                orderId: data.order_id,
+                tableId: data.table_id,
+                amountCents: 0,
+                currency: 'eur',
+                durationMinutes: data.duration_minutes,
+                durationSeconds: data.duration_seconds,
+                clientToken: token,
+                holdExpiresAt: data.hold_expires_at
+            };
+        } catch (err) {
+            return { success: false, statusCode: 500, code: 'DB_RPC_EXCEPTION', error: err.message };
+        }
+    }
+
+    if (!isTestMode) {
+        return {
+            success: false,
+            statusCode: 503,
+            code: 'DATABASE_NOT_CONFIGURED',
+            error: 'Tietokantayhteys puuttuu. Ilmaispelin varaus ei ole käytettävissä tuotannossa.'
+        };
+    }
+
+    // In-memory fallback
+    loadMemorySessions();
+    const cfg = getTableConfig(tableId, isTestMode);
+    if (!cfg) {
+        return { success: false, statusCode: 404, code: 'TABLE_NOT_FOUND', error: `Unknown table ID '${tableId}'` };
+    }
+
+    const netio = getNetioAdapter(cfg, isTestMode);
+    await reconcileTableState(tableId, cfg, netio, isTestMode);
+
+    if (!cfg.is_enabled || cfg.lock_state === 'maintenance_locked' || cfg.pending_maintenance_lock) {
+        return {
+            success: false,
+            statusCode: 423,
+            code: 'TABLE_LOCKED',
+            error: 'Pöytä on huoltotilassa.',
+            lockState: cfg.lock_state
+        };
+    }
+
+    if (cfg.lock_state === 'error_locked') {
+        return {
+            success: false,
+            statusCode: 423,
+            code: 'TABLE_ERROR_LOCKED',
+            error: 'Pöytä on virhelukittu laitehäiriön vuoksi.',
+            lockState: cfg.lock_state
+        };
+    }
+
+    if (cfg.lock_state !== 'available') {
+        return {
+            success: false,
+            statusCode: 409,
+            code: 'TABLE_BUSY',
+            error: 'Pöytä on varattu tai peli on käynnissä.',
+            lockState: cfg.lock_state
+        };
+    }
+
+    const activeSession = memoryDb.sessions.get(tableId);
+    if (activeSession && (activeSession.status === 'active' || activeSession.status === 'requested' || activeSession.status === 'hardware_uncertain')) {
+        return {
+            success: false,
+            statusCode: 409,
+            code: 'TABLE_BUSY',
+            error: 'Table is currently in an active play session.'
+        };
+    }
+
+    const existingHoldOrderId = memoryDb.holds.get(tableId);
+    if (existingHoldOrderId) {
+        const existingOrder = memoryDb.orders.get(existingHoldOrderId);
+        if (existingOrder && existingOrder.status === 'pending_payment' && existingOrder.holdExpiresAt > Date.now()) {
+            return {
+                success: false,
+                statusCode: 409,
+                code: 'TABLE_HELD',
+                error: 'Pöytä on parhaillaan toisen pelaajan varattavana.'
+            };
+        }
+    }
+
+    const orderId = `ord-free-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const holdExpiresAt = Date.now() + (3 * 60 * 1000);
+
+    const effectiveVenueId = venueId || cfg.venue_id || 'unknown';
+    const order = {
+        orderId,
+        tableId,
+        durationMinutes,
+        durationSeconds: durationMinutes * 60,
+        amountCents: 0,
+        currency: 'eur',
+        clientToken: token,
+        clientTokenHash: tokenHash,
+        status: 'pending_payment',
+        holdExpiresAt,
+        createdAt: new Date().toISOString(),
+        paymentIntentId: null,
+        refundStatus: 'none',
+        paymentStatus: 'succeeded',
+        isClaimed: false,
+        claimedByWorker: `${authMethod || 'shared_venue_pin'}:${effectiveVenueId}`
+    };
+
+    memoryDb.orders.set(orderId, order);
+    memoryDb.holds.set(tableId, orderId);
+    saveMemorySessions();
+
+    return {
+        success: true,
+        orderId,
+        tableId,
+        amountCents: 0,
+        currency: 'eur',
+        durationMinutes,
+        durationSeconds: durationMinutes * 60,
+        clientToken: token,
+        holdExpiresAt: new Date(holdExpiresAt).toISOString()
+    };
+}
+
+/**
+ * Sets table maintenance mode on or off.
+ * If maintenance is set while a game is active, pending_maintenance_lock is flagged
+ * so the active game completes without power cutoff, and locks into maintenance_locked upon finish.
+ */
+async function setTableMaintenance({ tableId, maintenanceEnabled, venueId = null, authMethod = 'shared_venue_pin', reason = null, isTestMode = false }) {
+    if (!tableId || typeof maintenanceEnabled !== 'boolean') {
+        return { success: false, statusCode: 400, code: 'INVALID_PARAMETERS', error: 'Invalid tableId or maintenance flag' };
+    }
+
+    const sb = getSupabase();
+    if (sb) {
+        try {
+            const { data, error } = await sb.rpc('arcade_set_table_maintenance', {
+                p_table_id: tableId,
+                p_maintenance_enabled: maintenanceEnabled,
+                p_venue_id: venueId,
+                p_auth_method: authMethod || 'shared_venue_pin',
+                p_reason: reason
+            });
+
+            if (error) {
+                console.error('[SUPABASE RPC ERROR] arcade_set_table_maintenance:', error.message);
+                return { success: false, statusCode: 500, code: 'DB_RPC_ERROR', error: error.message };
+            }
+
+            return data;
+        } catch (err) {
+            return { success: false, statusCode: 500, code: 'DB_RPC_EXCEPTION', error: err.message };
+        }
+    }
+
+    if (!isTestMode) {
+        return {
+            success: false,
+            statusCode: 503,
+            code: 'DATABASE_NOT_CONFIGURED',
+            error: 'Tietokantayhteys puuttuu.'
+        };
+    }
+
+    loadMemorySessions();
+    const cfg = getTableConfig(tableId, isTestMode);
+    if (!cfg) {
+        return { success: false, statusCode: 404, code: 'TABLE_NOT_FOUND', error: `Unknown table ID '${tableId}'` };
+    }
+
+    let isDeferred = false;
+    let targetLockState;
+
+    const activeSession = memoryDb.sessions.get(tableId);
+    const isBusy = (activeSession && (activeSession.status === 'active' || activeSession.status === 'requested' || (activeSession.expiresAt && activeSession.expiresAt > Date.now()))) || memoryDb.holds.has(tableId) || cfg.lock_state === 'active' || cfg.lock_state === 'pending_payment';
+
+    if (maintenanceEnabled) {
+        if (isBusy) {
+            cfg.pending_maintenance_lock = true;
+            isDeferred = true;
+            targetLockState = cfg.lock_state || 'available';
+        } else {
+            cfg.lock_state = 'maintenance_locked';
+            cfg.pending_maintenance_lock = false;
+            isDeferred = false;
+            targetLockState = 'maintenance_locked';
+        }
+    } else {
+        cfg.lock_state = 'available';
+        cfg.pending_maintenance_lock = false;
+        isDeferred = false;
+        targetLockState = 'available';
+    }
+
+    memoryDb.events.push({
+        table_id: tableId,
+        venue_id: venueId || cfg.venue_id || null,
+        event_type: 'maintenance_state_changed',
+        payload: {
+            maintenance_enabled: maintenanceEnabled,
+            lock_state: targetLockState,
+            pending_maintenance_lock: maintenanceEnabled && isDeferred,
+            is_deferred: isDeferred,
+            auth_method: authMethod || 'shared_venue_pin',
+            venue_id: venueId || cfg.venue_id || null,
+            reason
+        },
+        created_at: new Date().toISOString()
+    });
+
+    saveMemorySessions();
+
+    return {
+        success: true,
+        table_id: tableId,
+        lock_state: targetLockState,
+        pending_maintenance_lock: maintenanceEnabled && isDeferred,
+        is_deferred: isDeferred,
+        message: maintenanceEnabled && isDeferred
+            ? 'Peli on käynnissä. Pöytä lukittuu huoltotilaan pelin päättyessä.'
+            : (maintenanceEnabled ? 'Pöytä on asetettu huoltotilaan välittömästi.' : 'Huoltotila poistettu. Pöytä on vapaa.')
+    };
 }
 
 /**
@@ -1316,18 +1781,20 @@ async function activateSessionCore({
  * Handles late payments, payment mismatches, out-of-order webhooks,
  * and maintains physical hardware locking separated from financial refunds.
  */
-async function claimAndActivateOrder({ orderId, paymentIntent, isTestMode }) {
-    if (!paymentIntent || !paymentIntent.id) {
+async function claimAndActivateOrder({ orderId, paymentIntent, isFreePlay = false, tableId: explicitTableId, durationMinutes: explicitDurationMinutes, workerId: explicitWorkerId, isTestMode }) {
+    const isFree = isFreePlay || (orderId && orderId.startsWith('ord-free-'));
+    if (!isFree && (!paymentIntent || !paymentIntent.id)) {
         return { success: false, statusCode: 400, code: 'INVALID_PAYMENT_INTENT', error: 'Missing PaymentIntent data' };
     }
 
     const sb = getSupabase();
     if (sb) {
-        const tableId = paymentIntent.metadata?.table_id;
-        const amountCents = paymentIntent.amount;
-        const currency = paymentIntent.currency;
-        const workerId = `worker-${process.pid || 1}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+        const tableId = isFree ? explicitTableId : paymentIntent.metadata?.table_id;
+        const amountCents = isFree ? 0 : paymentIntent.amount;
+        const currency = isFree ? 'eur' : paymentIntent.currency;
+        const workerId = explicitWorkerId || `worker-${process.pid || 1}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
         const clientSessionToken = 'tok-ord-' + orderId;
+        const paymentIntentId = isFree ? null : paymentIntent.id;
 
         // 1. Call atomic claim RPC: arcade_claim_order_for_activation
         let claimData = null;
@@ -1336,7 +1803,7 @@ async function claimAndActivateOrder({ orderId, paymentIntent, isTestMode }) {
             const res = await sb.rpc('arcade_claim_order_for_activation', {
                 p_table_id: tableId,
                 p_order_id: orderId,
-                p_payment_intent_id: paymentIntent.id,
+                p_payment_intent_id: paymentIntentId,
                 p_amount_cents: amountCents,
                 p_currency: currency,
                 p_worker_id: workerId
@@ -1353,8 +1820,8 @@ async function claimAndActivateOrder({ orderId, paymentIntent, isTestMode }) {
                 success: false,
                 statusCode: 500,
                 code: 'DB_RPC_ERROR',
-                refundRequired: true,
-                error: `Tietokantavirhe maksun lunastuksessa: ${claimErr.message}`
+                refundRequired: !isFree,
+                error: `Tietokantavirhe lunastuksessa: ${claimErr.message}`
             };
         }
 
@@ -1376,13 +1843,13 @@ async function claimAndActivateOrder({ orderId, paymentIntent, isTestMode }) {
                 success: false,
                 statusCode: claimData?.statusCode || 409,
                 code: claimData?.code || 'CLAIM_FAILED',
-                refundRequired: Boolean(claimData?.refund_required),
-                error: claimData?.error || 'Maksun lunastus epäonnistui.'
+                refundRequired: isFree ? false : Boolean(claimData?.refund_required),
+                error: claimData?.error || 'Maksun/tilauksen lunastus epäonnistui.'
             };
         }
 
         const effectiveTableId = claimData.table_id || tableId;
-        const durationMinutes = claimData.duration_minutes;
+        const durationMinutes = claimData.duration_minutes || explicitDurationMinutes || 5;
         const durationSeconds = claimData.duration_seconds || (durationMinutes * 60);
 
         // 2. Pre-dispatch guard: arcade_pre_dispatch_guard
@@ -1689,7 +2156,7 @@ async function claimAndActivateOrder({ orderId, paymentIntent, isTestMode }) {
     loadMemorySessions();
 
     // 1. Idempotency Check: Has this payment intent already been processed?
-    if (memoryDb.processedPaymentIntents.has(paymentIntent.id)) {
+    if (!isFree && paymentIntent && memoryDb.processedPaymentIntents.has(paymentIntent.id)) {
         const order = memoryDb.orders.get(orderId);
         return {
             success: true,
@@ -1707,49 +2174,51 @@ async function claimAndActivateOrder({ orderId, paymentIntent, isTestMode }) {
             success: false,
             statusCode: 404,
             code: 'ORDER_NOT_FOUND',
-            refundRequired: true,
+            refundRequired: !isFree,
             error: `No stored order found matching ID '${orderId}'. Payment must be reviewed or refunded.`
         };
     }
 
     // 3. Strict Order & PaymentIntent Verification
-    if (paymentIntent.livemode === true) {
-        order.status = 'livemode_rejected';
-        order.refundStatus = 'refund_required';
-        saveMemorySessions();
-        return {
-            success: false,
-            statusCode: 400,
-            code: 'LIVEMODE_REJECTED',
-            refundRequired: true,
-            error: 'Live mode payments are forbidden in this development/test environment.'
-        };
-    }
+    if (!isFree) {
+        if (paymentIntent.livemode === true) {
+            order.status = 'livemode_rejected';
+            order.refundStatus = 'refund_required';
+            saveMemorySessions();
+            return {
+                success: false,
+                statusCode: 400,
+                code: 'LIVEMODE_REJECTED',
+                refundRequired: true,
+                error: 'Live mode payments are forbidden in this development/test environment.'
+            };
+        }
 
-    if (paymentIntent.amount !== order.amountCents || paymentIntent.currency.toLowerCase() !== order.currency.toLowerCase()) {
-        order.status = 'amount_mismatch';
-        order.refundStatus = 'refund_required';
-        saveMemorySessions();
-        return {
-            success: false,
-            statusCode: 400,
-            code: 'AMOUNT_MISMATCH',
-            refundRequired: true,
-            error: `Payment amount (${paymentIntent.amount} ${paymentIntent.currency}) does not match order catalog (${order.amountCents} ${order.currency}).`
-        };
-    }
+        if (paymentIntent.amount !== order.amountCents || paymentIntent.currency.toLowerCase() !== order.currency.toLowerCase()) {
+            order.status = 'amount_mismatch';
+            order.refundStatus = 'refund_required';
+            saveMemorySessions();
+            return {
+                success: false,
+                statusCode: 400,
+                code: 'AMOUNT_MISMATCH',
+                refundRequired: true,
+                error: `Payment amount (${paymentIntent.amount} ${paymentIntent.currency}) does not match order catalog (${order.amountCents} ${order.currency}).`
+            };
+        }
 
-    if (paymentIntent.metadata?.table_id && paymentIntent.metadata.table_id !== order.tableId) {
-        order.status = 'table_mismatch';
-        order.refundStatus = 'refund_required';
-        saveMemorySessions();
-        return {
-            success: false,
-            statusCode: 400,
-            code: 'TABLE_MISMATCH',
-            refundRequired: true,
-            error: `Payment table metadata (${paymentIntent.metadata.table_id}) does not match order (${order.tableId}).`
-        };
+        if (paymentIntent.metadata?.table_id && paymentIntent.metadata.table_id !== order.tableId) {
+            order.status = 'table_mismatch';
+            order.refundStatus = 'refund_required';
+            saveMemorySessions();
+            return {
+                success: false,
+                statusCode: 400,
+                code: 'TABLE_MISMATCH',
+                refundRequired: true,
+                error: `Payment table metadata (${paymentIntent.metadata.table_id}) does not match order (${order.tableId}).`
+            };
+        }
     }
 
     // 4. Hold Expiration and Conflict Check
@@ -1768,22 +2237,26 @@ async function claimAndActivateOrder({ orderId, paymentIntent, isTestMode }) {
 
     if (now > order.holdExpiresAt || currentTableHold !== order.orderId) {
         order.status = 'late_payment_conflict';
-        order.refundStatus = 'refund_required';
+        if (!isFree) {
+            order.refundStatus = 'refund_required';
+        }
         saveMemorySessions();
         return {
             success: false,
             statusCode: 409,
             code: 'LATE_PAYMENT_CONFLICT',
-            refundRequired: true,
-            error: 'Payment was confirmed after the 3-minute hold expired or table was reassigned. Payment is marked for refund.'
+            refundRequired: !isFree,
+            error: 'Payment was confirmed after the 3-minute hold expired or table was reassigned.'
         };
     }
 
     // 5. ATOMIC CLAIM TRANSITION
     order.isClaimed = true;
     order.status = 'activating';
-    order.paymentIntentId = paymentIntent.id;
-    memoryDb.processedPaymentIntents.add(paymentIntent.id);
+    if (!isFree && paymentIntent) {
+        order.paymentIntentId = paymentIntent.id;
+        memoryDb.processedPaymentIntents.add(paymentIntent.id);
+    }
     saveMemorySessions();
 
     // 6. Invoke Shared Safe Activation
@@ -1793,8 +2266,8 @@ async function claimAndActivateOrder({ orderId, paymentIntent, isTestMode }) {
         durationSeconds: order.durationSeconds,
         is30SecTest: false,
         clientToken: order.clientToken,
-        authSource: 'stripe',
-        paymentIntentId: paymentIntent.id,
+        authSource: isFree ? 'admin' : 'stripe',
+        paymentIntentId: isFree ? null : paymentIntent?.id,
         orderId: order.orderId,
         isTestMode
     });
@@ -1959,10 +2432,355 @@ async function getOrderStatus({ tableId, orderId, clientToken }) {
     };
 }
 
+function getSessionSecret(isTestMode) {
+    const secret = process.env.ARCADE_SESSION_SECRET;
+    if (!secret || typeof secret !== 'string' || secret.trim() === '') {
+        return null;
+    }
+    return secret.trim();
+}
+
+function computeCallerHash(venueId, callerIdentifier, clientIp) {
+    const raw = `${venueId || 'unknown'}:${callerIdentifier || 'anonymous'}:${clientIp || 'unknown'}`;
+    return crypto.createHash('sha256').update(raw).digest('hex');
+}
+
+function hashPinNode(pin, salt) {
+    return crypto.scryptSync(pin, salt, 64).toString('hex');
+}
+
+function signVenueStaffSession({ venueId, venueName, pinVersion, isTestMode }) {
+    const secret = getSessionSecret(isTestMode);
+    if (!secret) {
+        throw new Error('SESSION_SECRET_MISSING');
+    }
+    const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
+    const payload = Buffer.from(JSON.stringify({
+        type: 'venue_staff',
+        venue_id: venueId,
+        venue_name: venueName,
+        pin_version: pinVersion,
+        iat: Math.floor(Date.now() / 1000),
+        exp: Math.floor(Date.now() / 1000) + (8 * 3600)
+    })).toString('base64url');
+    const signature = crypto.createHmac('sha256', secret).update(`${header}.${payload}`).digest('base64url');
+    return `${header}.${payload}.${signature}`;
+}
+
+function verifyVenueStaffSession(token, isTestMode) {
+    const secret = getSessionSecret(isTestMode);
+    if (!secret) {
+        return {
+            ok: false,
+            statusCode: 503,
+            code: 'SESSION_SECRET_MISSING',
+            error: 'Palvelimen konfiguraatiovirhe: ARCADE_SESSION_SECRET puuttuu.'
+        };
+    }
+    if (!token || typeof token !== 'string') {
+        return { ok: false, statusCode: 401, code: 'INVALID_TOKEN', error: 'Istuntotunnus puuttuu.' };
+    }
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+        return { ok: false, statusCode: 401, code: 'INVALID_TOKEN', error: 'Virheellinen istuntotunnuksen muoto.' };
+    }
+    const [header, payload, sig] = parts;
+    const expectedSig = crypto.createHmac('sha256', secret).update(`${header}.${payload}`).digest('base64url');
+    if (sig.length !== expectedSig.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expectedSig))) {
+        return { ok: false, statusCode: 401, code: 'INVALID_TOKEN', error: 'Virheellinen istuntoallekirjoitus.' };
+    }
+    let data;
+    try {
+        data = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
+    } catch (e) {
+        return { ok: false, statusCode: 401, code: 'INVALID_TOKEN', error: 'Virheellinen istuntodata.' };
+    }
+    if (data.exp && data.exp < Math.floor(Date.now() / 1000)) {
+        return { ok: false, statusCode: 401, code: 'SESSION_EXPIRED', error: 'Henkilökunnan istunto on vanhentunut. Kirjaudu sisään uudelleen.' };
+    }
+    return { ok: true, session: data };
+}
+
+async function verifyVenuePin({ tableId, pin, callerHash, isTestMode }) {
+    if (!tableId || !pin) {
+        return { success: false, statusCode: 400, code: 'INVALID_PARAMETERS', error: 'Puuttuvia parametreja.' };
+    }
+
+    const sb = getSupabase();
+    if (sb) {
+        try {
+            const { data, error } = await sb.rpc('arcade_verify_venue_pin', {
+                p_table_id: tableId,
+                p_pin: pin,
+                p_caller_hash: callerHash || 'anon'
+            });
+            if (error) {
+                console.error('[SUPABASE RPC ERROR] arcade_verify_venue_pin:', error.message);
+                return { success: false, statusCode: 500, code: 'DB_RPC_ERROR', error: error.message };
+            }
+            return data;
+        } catch (err) {
+            return { success: false, statusCode: 500, code: 'DB_RPC_EXCEPTION', error: err.message };
+        }
+    }
+
+    if (!isTestMode) {
+        return { success: false, statusCode: 503, code: 'DATABASE_NOT_CONFIGURED', error: 'Tietokantayhteys puuttuu.' };
+    }
+
+    // In-memory simulation
+    const cfg = getTableConfig(tableId, isTestMode);
+    if (!cfg) {
+        return { success: false, statusCode: 404, code: 'TABLE_NOT_FOUND', error: 'Pöytää ei löydy.' };
+    }
+    const venueId = cfg.venue_id;
+    if (!venueId) {
+        return { success: false, statusCode: 400, code: 'VENUE_NOT_CONFIGURED', error: 'Pöydälle ei ole määritetty toimipaikkaa.' };
+    }
+    const venue = memoryDb.venues.get(venueId);
+    if (!venue) {
+        return { success: false, statusCode: 404, code: 'VENUE_NOT_FOUND', error: 'Toimipaikkaa ei löydy.' };
+    }
+
+    // Check venue global lockout
+    if (venue.venue_locked_until && venue.venue_locked_until > Date.now()) {
+        return {
+            success: false,
+            statusCode: 429,
+            code: 'VENUE_LOCKED_OUT',
+            locked_until: new Date(venue.venue_locked_until).toISOString(),
+            error: 'Toimipaikan kirjautuminen on tilapäisesti estetty järjestelmätason suojalukituksella. Ota yhteys ylläpitoon.'
+        };
+    }
+
+    if (!venue.pin_hash) {
+        return {
+            success: false,
+            statusCode: 400,
+            code: 'PIN_NOT_CONFIGURED',
+            error: 'Toimipaikalle ei ole vielä asetettu PIN-koodia. Pyydä ylläpitoa määrittämään PIN.'
+        };
+    }
+
+    // Check caller lockout
+    const attemptKey = `${venueId}:${callerHash || 'anon'}`;
+    let caller = memoryDb.pinAttempts.get(attemptKey);
+    if (!caller) {
+        caller = { failed_attempts: 0, locked_until: null, last_attempt_at: Date.now() };
+        memoryDb.pinAttempts.set(attemptKey, caller);
+    }
+
+    if (caller.locked_until && caller.locked_until > Date.now()) {
+        return {
+            success: false,
+            statusCode: 429,
+            code: 'CALLER_LOCKED_OUT',
+            locked_until: new Date(caller.locked_until).toISOString(),
+            error: 'Liian monta virheellistä yritystä tältä laitteelta. Yritä uudelleen 15 minuutin kuluttua.'
+        };
+    }
+
+    // Compare PIN
+    let isValid = false;
+    if (venue.pin_hash.includes(':')) {
+        const [h, s] = venue.pin_hash.split(':');
+        isValid = hashPinNode(pin, s) === h;
+    } else {
+        isValid = venue.pin_hash === pin;
+    }
+
+    if (isValid) {
+        caller.failed_attempts = 0;
+        caller.locked_until = null;
+        venue.venue_failed_attempts = 0;
+        venue.venue_locked_until = null;
+
+        memoryDb.events.push({
+            table_id: tableId,
+            venue_id: venueId,
+            event_type: 'venue_pin_verified',
+            payload: { auth_method: 'shared_venue_pin', venue_id: venueId, table_id: tableId },
+            created_at: new Date().toISOString()
+        });
+
+        return {
+            success: true,
+            statusCode: 200,
+            venue_id: venue.venue_id,
+            venue_name: venue.name,
+            pin_version: venue.pin_version
+        };
+    } else {
+        caller.failed_attempts += 1;
+        const attemptsRemaining = Math.max(0, 5 - caller.failed_attempts);
+        if (caller.failed_attempts >= 5) {
+            caller.locked_until = Date.now() + 15 * 60 * 1000;
+        }
+
+        venue.venue_failed_attempts += 1;
+        if (venue.venue_failed_attempts >= 25) {
+            venue.venue_locked_until = Date.now() + 30 * 60 * 1000;
+        }
+
+        memoryDb.events.push({
+            table_id: tableId,
+            venue_id: venueId,
+            event_type: 'venue_pin_failed',
+            payload: {
+                auth_method: 'shared_venue_pin',
+                caller_failed_attempts: caller.failed_attempts,
+                caller_locked: caller.failed_attempts >= 5,
+                venue_failed_attempts: venue.venue_failed_attempts,
+                venue_locked: venue.venue_failed_attempts >= 25
+            },
+            created_at: new Date().toISOString()
+        });
+
+        if (caller.failed_attempts >= 5) {
+            return {
+                success: false,
+                statusCode: 429,
+                code: 'CALLER_LOCKED_OUT',
+                attempts_remaining: 0,
+                locked: true,
+                locked_until: new Date(caller.locked_until).toISOString(),
+                error: 'Liian monta virheellistä yritystä tältä laitteelta. Lukittu 15 minuutiksi.'
+            };
+        }
+
+        return {
+            success: false,
+            statusCode: 401,
+            code: 'INVALID_PIN',
+            attempts_remaining: attemptsRemaining,
+            locked: false,
+            error: `Virheellinen PIN-koodi. Yrityksiä jäljellä: ${attemptsRemaining}`
+        };
+    }
+}
+
+async function setVenuePin({ venueId, newPin, isTestMode }) {
+    if (!venueId || !newPin || newPin.length < 4 || newPin.length > 8) {
+        return { success: false, statusCode: 400, code: 'INVALID_PARAMETERS', error: 'Uuden PIN-koodin on oltava 4–8 merkkiä.' };
+    }
+
+    const sb = getSupabase();
+    if (sb) {
+        try {
+            const { data, error } = await sb.rpc('arcade_set_venue_pin', {
+                p_venue_id: venueId,
+                p_new_pin: newPin
+            });
+            if (error) {
+                console.error('[SUPABASE RPC ERROR] arcade_set_venue_pin:', error.message);
+                return { success: false, statusCode: 500, code: 'DB_RPC_ERROR', error: error.message };
+            }
+            return data;
+        } catch (err) {
+            return { success: false, statusCode: 500, code: 'DB_RPC_EXCEPTION', error: err.message };
+        }
+    }
+
+    if (!isTestMode) {
+        return { success: false, statusCode: 503, code: 'DATABASE_NOT_CONFIGURED', error: 'Tietokantayhteys puuttuu.' };
+    }
+
+    let venue = memoryDb.venues.get(venueId);
+    if (!venue) {
+        venue = { venue_id: venueId, name: venueId, pin_hash: null, pin_version: 1, venue_failed_attempts: 0, venue_locked_until: null };
+        memoryDb.venues.set(venueId, venue);
+    }
+
+    const salt = crypto.randomBytes(16).toString('hex');
+    const hash = hashPinNode(newPin, salt);
+    venue.pin_hash = `${hash}:${salt}`;
+    venue.pin_version += 1;
+    venue.venue_failed_attempts = 0;
+    venue.venue_locked_until = null;
+
+    // Clear all caller lockouts for this venue
+    for (const [k] of memoryDb.pinAttempts.entries()) {
+        if (k.startsWith(`${venueId}:`)) {
+            memoryDb.pinAttempts.delete(k);
+        }
+    }
+
+    memoryDb.events.push({
+        table_id: null,
+        venue_id: venueId,
+        event_type: 'venue_pin_rotated',
+        payload: { venue_id: venueId, new_version: venue.pin_version },
+        created_at: new Date().toISOString()
+    });
+
+    return {
+        success: true,
+        statusCode: 200,
+        venue_id: venueId,
+        pin_version: venue.pin_version
+    };
+}
+
+async function resetVenueLockout({ venueId, isTestMode }) {
+    if (!venueId) {
+        return { success: false, statusCode: 400, code: 'INVALID_PARAMETERS', error: 'Puuttuva venueId' };
+    }
+
+    const sb = getSupabase();
+    if (sb) {
+        try {
+            const { data, error } = await sb.rpc('arcade_reset_venue_lockout', {
+                p_venue_id: venueId
+            });
+            if (error) {
+                console.error('[SUPABASE RPC ERROR] arcade_reset_venue_lockout:', error.message);
+                return { success: false, statusCode: 500, code: 'DB_RPC_ERROR', error: error.message };
+            }
+            return data;
+        } catch (err) {
+            return { success: false, statusCode: 500, code: 'DB_RPC_EXCEPTION', error: err.message };
+        }
+    }
+
+    if (!isTestMode) {
+        return { success: false, statusCode: 503, code: 'DATABASE_NOT_CONFIGURED', error: 'Tietokantayhteys puuttuu.' };
+    }
+
+    const venue = memoryDb.venues.get(venueId);
+    if (!venue) {
+        return { success: false, statusCode: 404, code: 'VENUE_NOT_FOUND', error: 'Toimipaikkaa ei löydy.' };
+    }
+
+    venue.venue_failed_attempts = 0;
+    venue.venue_locked_until = null;
+
+    for (const [k] of memoryDb.pinAttempts.entries()) {
+        if (k.startsWith(`${venueId}:`)) {
+            memoryDb.pinAttempts.delete(k);
+        }
+    }
+
+    memoryDb.events.push({
+        table_id: null,
+        venue_id: venueId,
+        event_type: 'venue_lockout_cleared',
+        payload: { venue_id: venueId },
+        created_at: new Date().toISOString()
+    });
+
+    return {
+        success: true,
+        statusCode: 200,
+        venue_id: venueId,
+        message: 'Toimipaikan lukitus ja yrityslaskurit on nollattu.'
+    };
+}
+
 function resetMemoryDb() {
     memoryDb.sessions.clear();
     memoryDb.orders.clear();
     memoryDb.holds.clear();
+    memoryDb.pinAttempts.clear();
     memoryDb.processedPaymentIntents.clear();
     try {
         if (fs.existsSync(SESSIONS_PERSIST_FILE)) {
@@ -1972,11 +2790,14 @@ function resetMemoryDb() {
     memoryDb.events.length = 0;
     memoryDb._simulateDbErrorOnActivate = false;
     memoryDb._simulateDispatchError = false;
-    memoryDb.tableConfigs.set('demo-pulse-01', { table_id: 'demo-pulse-01', is_enabled: true, lock_state: 'available', switch_output_id: 1, is_free_play_allowed: true, device_endpoint: null });
-    memoryDb.tableConfigs.set('demo-arcade-02', { table_id: 'demo-arcade-02', is_enabled: true, lock_state: 'available', switch_output_id: 1, is_free_play_allowed: false, device_endpoint: null });
-    memoryDb.tableConfigs.set('demo-locked-03', { table_id: 'demo-locked-03', is_enabled: false, lock_state: 'maintenance_locked', switch_output_id: 1, is_free_play_allowed: false, device_endpoint: null });
-    memoryDb.tableConfigs.set('subsoccer-tripla-live-01', { table_id: 'subsoccer-tripla-live-01', is_enabled: true, lock_state: 'available', switch_output_id: 1, is_free_play_allowed: false, device_endpoint: null });
-    memoryDb.tableConfigs.set('subsoccer-freeplay-venue-01', { table_id: 'subsoccer-freeplay-venue-01', is_enabled: true, lock_state: 'available', switch_output_id: 1, is_free_play_allowed: true, device_endpoint: null });
+    memoryDb.tableConfigs.set('demo-pulse-01', { table_id: 'demo-pulse-01', venue_id: 'venue-demo-01', is_enabled: true, lock_state: 'available', switch_output_id: 1, is_free_play_allowed: true, device_endpoint: null });
+    memoryDb.tableConfigs.set('demo-arcade-02', { table_id: 'demo-arcade-02', venue_id: 'venue-demo-01', is_enabled: true, lock_state: 'available', switch_output_id: 1, is_free_play_allowed: false, device_endpoint: null });
+    memoryDb.tableConfigs.set('demo-locked-03', { table_id: 'demo-locked-03', venue_id: 'venue-demo-01', is_enabled: false, lock_state: 'maintenance_locked', switch_output_id: 1, is_free_play_allowed: false, device_endpoint: null });
+    memoryDb.tableConfigs.set('subsoccer-tripla-live-01', { table_id: 'subsoccer-tripla-live-01', venue_id: 'venue-tripla', is_enabled: true, lock_state: 'available', switch_output_id: 1, is_free_play_allowed: false, device_endpoint: null });
+    memoryDb.tableConfigs.set('subsoccer-freeplay-venue-01', { table_id: 'subsoccer-freeplay-venue-01', venue_id: 'venue-freeplay-01', is_enabled: true, lock_state: 'available', switch_output_id: 1, is_free_play_allowed: true, device_endpoint: null });
+    memoryDb.venues.set('venue-demo-01', { venue_id: 'venue-demo-01', name: 'Mall of Tripla Demo Venue', pin_hash: null, pin_version: 1, venue_failed_attempts: 0, venue_locked_until: null });
+    memoryDb.venues.set('venue-tripla', { venue_id: 'venue-tripla', name: 'Mall of Tripla Subsoccer Lounge', pin_hash: null, pin_version: 1, venue_failed_attempts: 0, venue_locked_until: null });
+    memoryDb.venues.set('venue-freeplay-01', { venue_id: 'venue-freeplay-01', name: 'Freeplay Venue', pin_hash: null, pin_version: 1, venue_failed_attempts: 0, venue_locked_until: null });
     memoryDb._mockNetioConfig = {};
     memoryDb._mockNetioInstance = null;
     memoryDb._simulateFinalizeError = false;
@@ -2000,13 +2821,26 @@ module.exports = {
     getNetioAdapter,
     reconcileTableState,
     createPaymentHold,
+    createFreePlayHold,
     releasePaymentHold,
+    setTableMaintenance,
     bindPaymentIntent,
     getTableConfigAsync,
+    getVenueAsync,
     getSupabase,
     activateSessionCore,
     claimAndActivateOrder,
     getOrderStatus,
+    getStripeClient,
+    _setStripeClient,
+    getSessionSecret,
+    computeCallerHash,
+    hashPinNode,
+    signVenueStaffSession,
+    verifyVenueStaffSession,
+    verifyVenuePin,
+    setVenuePin,
+    resetVenueLockout,
     _setSupabaseClient: (client) => { supabase = client; },
     _getSupabaseClient: () => supabase
 };

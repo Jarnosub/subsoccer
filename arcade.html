@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <script src="https://js.stripe.com/v3/"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
         :root {
@@ -25,6 +26,174 @@
             --brand-red: #E30613;
             --brand-red-hover: #c40510;
         }
+
+        .staff-header-btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.72rem;
+            font-weight: 500;
+            padding: 5px 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .staff-header-btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: var(--accent-blue);
+        }
+        .staff-header-btn.logged-in {
+            background: rgba(138, 180, 248, 0.15);
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        /* ─── STAFF / MODERATOR MODAL ─── */
+        .staff-modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 999;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+        }
+        @media (min-width: 520px) {
+            .staff-modal-backdrop {
+                align-items: center;
+            }
+        }
+        .staff-modal-card {
+            width: 100%;
+            max-width: 500px;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-top-left-radius: 18px;
+            border-top-right-radius: 18px;
+            padding: 24px;
+            box-sizing: border-box;
+            max-height: 90vh;
+            overflow-y: auto;
+            color: var(--text-primary);
+        }
+        @media (min-width: 520px) {
+            .staff-modal-card {
+                border-radius: 18px;
+            }
+        }
+        .staff-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .staff-modal-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .staff-modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.25rem;
+            cursor: pointer;
+            padding: 4px;
+        }
+        .staff-modal-close:hover {
+            color: var(--text-primary);
+        }
+        .staff-form-group {
+            margin-bottom: 14px;
+        }
+        .staff-form-label {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .staff-input {
+            width: 100%;
+            background: var(--bg-card-inner);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            padding: 12px 14px;
+            font-size: 0.95rem;
+            outline: none;
+            box-sizing: border-box;
+        }
+        .staff-input:focus {
+            border-color: var(--accent-blue);
+        }
+        .staff-login-btn {
+            width: 100%;
+            background: var(--brand-red);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 14px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .staff-login-btn:hover {
+            background: var(--brand-red-hover);
+        }
+        .staff-quick-btn {
+            width: 100%;
+            background: rgba(138, 180, 248, 0.1);
+            color: var(--accent-blue);
+            border: 1px solid rgba(138, 180, 248, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+        .staff-notice-banner {
+            background: rgba(242, 139, 130, 0.12);
+            border: 1px solid rgba(242, 139, 130, 0.4);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 16px;
+            font-size: 0.8rem;
+            color: var(--accent-red);
+            line-height: 1.4;
+        }
+        .staff-telemetry-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            font-size: 0.85rem;
+        }
+        .staff-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .staff-badge.badge-green { background: rgba(129, 201, 149, 0.15); color: var(--accent-green); }
+        .staff-badge.badge-yellow { background: rgba(253, 226, 147, 0.15); color: var(--accent-yellow); }
+        .staff-badge.badge-red { background: rgba(242, 139, 130, 0.15); color: var(--accent-red); }
 
         * {
             box-sizing: border-box;
@@ -1099,9 +1268,15 @@
             <img src="subsoccer_logo.svg" alt="Subsoccer" class="header-logo">
             <span class="arcade-pill">Arcade</span>
         </a>
-        <div class="header-venue" id="headerVenueLabel">
-            <i class="fas fa-location-dot" style="color:var(--brand-red);"></i>
-            <span id="venueNameTop">Mall of Tripla</span>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <div class="header-venue" id="headerVenueLabel">
+                <i class="fas fa-location-dot" style="color:var(--brand-red);"></i>
+                <span id="venueNameTop">Mall of Tripla</span>
+            </div>
+            <button class="staff-header-btn" id="btnOpenStaffModal" onclick="openStaffModal()" title="Henkilökunnan moderaattoritila" type="button">
+                <i class="fas fa-shield-halved"></i>
+                <span id="staffHeaderLabel">Staff</span>
+            </button>
         </div>
     </header>
 
@@ -1324,6 +1499,100 @@
         </div>
     </footer>
 
+    <!-- STAFF / MODERATOR MODAL SHEET -->
+    <div class="staff-modal-backdrop" id="staffModalBackdrop" style="display: none;">
+        <div class="staff-modal-card">
+            <div class="staff-modal-header">
+                <div class="staff-modal-title">
+                    <i class="fas fa-shield-halved" style="color: var(--accent-blue);"></i>
+                    <span>Henkilökunta / Moderaattoritila</span>
+                </div>
+                <button class="staff-modal-close" onclick="closeStaffModal()" type="button" aria-label="Sulje">
+                    <i class="fas fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- 1. LOGIN FORM (WHEN NOT LOGGED IN) -->
+            <div id="staffLoginForm" style="display: block;">
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 16px;">
+                    Kirjaudu sisään toimipaikan PIN-koodilla hallinnoidaksesi tämän toimipaikan pelipöytiä.
+                </p>
+                <div class="staff-form-group">
+                    <label class="staff-form-label" for="staffPin">Toimipaikan PIN-koodi</label>
+                    <input class="staff-input" id="staffPin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="••••" autocomplete="one-time-code">
+                </div>
+                <div id="staffLoginError" style="display: none; color: var(--accent-red); font-size: 0.8rem; margin-bottom: 10px;"></div>
+                <button class="staff-login-btn" id="btnStaffSubmitLogin" onclick="loginStaff()" type="button">
+                    <i class="fas fa-sign-in-alt" style="margin-right: 6px;"></i> Kirjaudu PIN-koodilla
+                </button>
+                <button class="staff-quick-btn" id="btnStaffQuickLogin" onclick="quickLoginStaff()" type="button">
+                    <i class="fas fa-flask" style="margin-right: 6px;"></i> Pika-kirjautuminen (Testitila)
+                </button>
+            </div>
+
+            <!-- 2. DASHBOARD (WHEN LOGGED IN) -->
+            <div id="staffDashboard" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; background: rgba(255, 255, 255, 0.04); padding: 10px 14px; border-radius: 8px;">
+                    <div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary);">Kirjautunut käyttäjä</div>
+                        <div style="font-weight: 600; font-size: 0.9rem;" id="staffUserEmail">staff@subsoccer.com</div>
+                    </div>
+                    <span class="staff-badge badge-green" id="staffUserRole">Staff</span>
+                </div>
+
+                <!-- CRITICAL SAFETY NOTICE -->
+                <div class="staff-notice-banner">
+                    <i class="fas fa-triangle-exclamation" style="margin-right: 6px;"></i>
+                    <strong>TURVALLISUUSOHJE:</strong> Käynnissä olevaa Short ON -peliä ei voi katkaista ohjelmallisesti (laite suojaa relettä). Hätätilanteessa irrota laitteen virtajohto fyysisesti seinästä!
+                </div>
+
+                <!-- PENDING MAINTENANCE ALERT (IF APPLICABLE) -->
+                <div id="staffPendingAlert" style="display: none; background: rgba(253, 226, 147, 0.15); border: 1px solid rgba(253, 226, 147, 0.4); color: var(--accent-yellow); padding: 10px; border-radius: 8px; font-size: 0.82rem; margin-bottom: 14px;">
+                    <i class="fas fa-clock" style="margin-right: 6px;"></i>
+                    <strong>Huoltotila odottaa:</strong> Pöytä lukittuu huoltotilaan heti nykyisen pelijakson päätyttyä.
+                </div>
+
+                <!-- TELEMETRY -->
+                <div style="margin-bottom: 20px;">
+                    <div style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 6px; letter-spacing: 0.5px;">Pöydän laitetilat</div>
+                    <div class="staff-telemetry-row">
+                        <span>Pöytätunnus</span>
+                        <code id="staffTableId" style="color: var(--accent-blue);">demo-pulse-01</code>
+                    </div>
+                    <div class="staff-telemetry-row">
+                        <span>Tila</span>
+                        <span class="staff-badge" id="staffTableStateBadge">Available</span>
+                    </div>
+                    <div class="staff-telemetry-row">
+                        <span>Lähtö 1 (Pulse Pelipöytä)</span>
+                        <span id="staffOutlet1Status" style="font-weight: 500;">Pois päältä (Valmiustila)</span>
+                    </div>
+                    <div class="staff-telemetry-row">
+                        <span>Lähtö 2 (Opastusnäyttö)</span>
+                        <span style="color: var(--text-secondary); font-size: 0.8rem;">(Ohjaus tulossa vaiheessa 2)</span>
+                    </div>
+                    <div class="staff-telemetry-row">
+                        <span>Lähtö 3 (Huomiovalaistus)</span>
+                        <span style="color: var(--text-secondary); font-size: 0.8rem;">(Ohjaus tulossa vaiheessa 2)</span>
+                    </div>
+                </div>
+
+                <!-- MODERATOR ACTIONS -->
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <button class="staff-login-btn" id="btnToggleMaintenance" onclick="toggleMaintenance()" type="button" style="background: var(--bg-card-inner); border: 1px solid var(--border-color); color: var(--text-primary);">
+                        <i class="fas fa-wrench" style="margin-right: 6px;"></i> <span id="btnMaintenanceLabel">Aseta huoltotila</span>
+                    </button>
+                    <button class="staff-login-btn" id="btnGrantFreePlay" onclick="grantModeratorFreePlay()" type="button" style="background: #2563EB;">
+                        <i class="fas fa-gift" style="margin-right: 6px;"></i> Myönnä 5 min ilmaispeli
+                    </button>
+                    <button class="staff-quick-btn" onclick="logoutStaff()" type="button" style="color: var(--text-secondary); border-color: var(--border-color); margin-top: 10px;">
+                        <i class="fas fa-sign-out-alt" style="margin-right: 6px;"></i> Kirjaudu ulos
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- STRIPE TEST PAYMENT MODAL SHEET -->
     <div class="stripe-modal-backdrop" id="stripeModalBackdrop" style="display: none;">
         <div class="stripe-modal-card">
@@ -1490,6 +1759,14 @@
             try {
                 const res = await fetch(`/.netlify/functions/arcade-session?action=status&table=${encodeURIComponent(currentTableId)}`);
                 const data = await res.json().catch(() => ({}));
+                window._lastStatusData = data;
+                if (typeof updateStaffDrawerUI === 'function') {
+                    updateStaffDrawerUI(data);
+                }
+
+                if (data.pendingMaintenanceLock) {
+                    showErrorNotice('⚠️ Huoltotila odottaa: Pöytä lukittuu huoltoon käynnissä olevan pelin päätyttyä.');
+                }
 
                 if (data.allow30sTest || data.isTestMode || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
                     window._allow30sTest = true;
@@ -2278,6 +2555,312 @@
         // Test helper for Playwright E2E
         function setTestDuration(secs) {
             selectSlot(secs);
+        }
+
+        // ─── STAFF / MODERATOR LOGIC (PHASE 1) ───
+        let supaClient = null;
+        if (typeof supabase !== 'undefined' && supabase.createClient) {
+            try {
+                supaClient = supabase.createClient(
+                    'https://ujxmmrsmdwrgcwatdhvx.supabase.co',
+                    'sb_publishable_hMb0ml4fl2A9GLqm28gemg_CAE5vY8t'
+                );
+            } catch (e) {
+                console.warn('[STAFF] Supabase client init error:', e.message);
+            }
+        }
+
+        let currentStaffToken = sessionStorage.getItem('arcade_staff_session') || sessionStorage.getItem('arcade_staff_token') || null;
+        let currentStaffUser = JSON.parse(sessionStorage.getItem('arcade_staff_user') || 'null');
+
+        function openStaffModal() {
+            const modal = document.getElementById('staffModalBackdrop');
+            if (modal) modal.style.display = 'flex';
+            checkStaffAuth();
+        }
+
+        function closeStaffModal() {
+            const modal = document.getElementById('staffModalBackdrop');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function checkStaffAuth() {
+            const loginForm = document.getElementById('staffLoginForm');
+            const dashboard = document.getElementById('staffDashboard');
+            const headerBtn = document.getElementById('btnOpenStaffModal');
+
+            if (currentStaffToken && currentStaffUser) {
+                if (loginForm) loginForm.style.display = 'none';
+                if (dashboard) dashboard.style.display = 'block';
+                if (headerBtn) headerBtn.classList.add('logged-in');
+
+                const emailEl = document.getElementById('staffUserEmail');
+                if (emailEl) emailEl.textContent = currentStaffUser.email || currentStaffUser.venueName || 'Toimipaikan henkilökunta';
+                const roleEl = document.getElementById('staffUserRole');
+                if (roleEl) roleEl.textContent = currentStaffUser.role || 'Staff';
+
+                updateStaffDrawerUI();
+            } else {
+                if (loginForm) loginForm.style.display = 'block';
+                if (dashboard) dashboard.style.display = 'none';
+                if (headerBtn) headerBtn.classList.remove('logged-in');
+            }
+        }
+
+        async function loginStaff() {
+            const pinInput = document.getElementById('staffPin');
+            const errorBox = document.getElementById('staffLoginError');
+            const submitBtn = document.getElementById('btnStaffSubmitLogin');
+
+            if (!pinInput) return;
+            const pin = pinInput.value.trim();
+
+            if (!pin) {
+                if (errorBox) {
+                    errorBox.textContent = 'Syötä toimipaikan PIN-koodi.';
+                    errorBox.style.display = 'block';
+                }
+                return;
+            }
+
+            if (errorBox) errorBox.style.display = 'none';
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Tarkistetaan...';
+            }
+
+            try {
+                let clientFingerprint = sessionStorage.getItem('arcade_client_fingerprint');
+                if (!clientFingerprint) {
+                    clientFingerprint = 'fp_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+                    sessionStorage.setItem('arcade_client_fingerprint', clientFingerprint);
+                }
+
+                const res = await fetch('/.netlify/functions/arcade-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'staff-pin-login',
+                        table: currentTableId,
+                        pin,
+                        clientFingerprint
+                    })
+                });
+
+                const data = await res.json().catch(() => ({}));
+
+                if (!res.ok || !data.success) {
+                    let errMsg = data.error || 'Kirjautuminen epäonnistui.';
+                    if (res.status === 429) {
+                        if (data.venueLocked) {
+                            errMsg = 'Toimipaikan PIN-kokeilut on lukittu liian monen virheen vuoksi. Ota yhteys ylläpitoon.';
+                        } else {
+                            errMsg = 'Liian monta virheellistä yritystä. Kokeile uudelleen 15 minuutin kuluttua.';
+                        }
+                    } else if (data.attemptsRemaining !== undefined) {
+                        errMsg += ` (Yrityksiä jäljellä: ${data.attemptsRemaining})`;
+                    }
+                    throw new Error(errMsg);
+                }
+
+                currentStaffToken = data.token;
+                currentStaffUser = {
+                    venueId: data.venueId,
+                    venueName: data.venueName,
+                    email: data.venueName || 'Toimipaikan henkilökunta',
+                    role: 'Toimipaikan henkilökunta',
+                    pinVersion: data.pinVersion
+                };
+
+                sessionStorage.setItem('arcade_staff_session', currentStaffToken);
+                sessionStorage.setItem('arcade_staff_user', JSON.stringify(currentStaffUser));
+                pinInput.value = '';
+
+                checkStaffAuth();
+            } catch (err) {
+                if (errorBox) {
+                    errorBox.textContent = err.message || 'Kirjautumisvirhe.';
+                    errorBox.style.display = 'block';
+                }
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-sign-in-alt" style="margin-right: 6px;"></i> Kirjaudu PIN-koodilla';
+                }
+            }
+        }
+
+        function quickLoginStaff() {
+            currentStaffToken = 'test-moderator-token';
+            currentStaffUser = {
+                id: 'test-mod-01',
+                email: 'staff.demo@subsoccer.com',
+                venueId: 'venue-demo-01',
+                venueName: 'Mall of Tripla Demo Venue',
+                role: 'Staff (Testitila)'
+            };
+            sessionStorage.setItem('arcade_staff_session', currentStaffToken);
+            sessionStorage.setItem('arcade_staff_user', JSON.stringify(currentStaffUser));
+            checkStaffAuth();
+        }
+
+        function logoutStaff() {
+            currentStaffToken = null;
+            currentStaffUser = null;
+            sessionStorage.removeItem('arcade_staff_session');
+            sessionStorage.removeItem('arcade_staff_token');
+            sessionStorage.removeItem('arcade_staff_user');
+            checkStaffAuth();
+        }
+
+        async function toggleMaintenance() {
+            if (!currentStaffToken) {
+                alert('Kirjaudu sisään ensin.');
+                return;
+            }
+
+            const btn = document.getElementById('btnToggleMaintenance');
+            const isCurrentlyLocked = (currentState === 'LOCKED' || (window._lastStatusData?.state === 'maintenance_locked'));
+            const targetEnable = !isCurrentlyLocked;
+
+            if (btn) btn.disabled = true;
+
+            try {
+                const res = await fetch('/.netlify/functions/arcade-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${currentStaffToken}`
+                    },
+                    body: JSON.stringify({
+                        action: 'set-maintenance',
+                        table: currentTableId,
+                        enabled: targetEnable,
+                        reason: 'Moderaattorin manuaalinen huoltotilan kytkentä'
+                    })
+                });
+
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || !data.success) {
+                    alert(`Huoltotilan muutos epäonnistui: ${data.error || res.statusText}`);
+                    return;
+                }
+
+                if (data.isDeferred) {
+                    alert('Peli on käynnissä! Huoltotila on asetettu odottamaan ja astuu voimaan pelin päättyessä.');
+                } else {
+                    alert(targetEnable ? 'Pöytä on asetettu huoltotilaan välittömästi.' : 'Pöytä on vapautettu huoltotilasta.');
+                }
+
+                syncStatusWithBackend();
+            } catch (e) {
+                alert(`Verkkovirhe: ${e.message}`);
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        }
+
+        async function grantModeratorFreePlay() {
+            if (!currentStaffToken) {
+                alert('Kirjaudu sisään ensin.');
+                return;
+            }
+
+            if (currentState === 'ACTIVE' || currentState === 'REQUESTING') {
+                alert('Pöydällä on jo käynnissä oleva peli!');
+                return;
+            }
+
+            const btn = document.getElementById('btnGrantFreePlay');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Myönnetään ilmaispeliä...';
+            }
+
+            try {
+                const res = await fetch('/.netlify/functions/arcade-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${currentStaffToken}`
+                    },
+                    body: JSON.stringify({
+                        action: 'grant-free-play',
+                        table: currentTableId,
+                        durationMinutes: 5
+                    })
+                });
+
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || !data.success) {
+                    alert(`Ilmaispelin aktivointi epäonnistui: ${data.error || res.statusText}`);
+                    return;
+                }
+
+                closeStaffModal();
+                const remainingSecs = data.durationMinutes ? data.durationMinutes * 60 : 300;
+                startActivePlay(remainingSecs, data.expiresAt, remainingSecs);
+            } catch (e) {
+                alert(`Verkkovirhe ilmaispelissä: ${e.message}`);
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-gift" style="margin-right: 6px;"></i> Myönnä 5 min ilmaispeli';
+                }
+            }
+        }
+
+        function updateStaffDrawerUI(statusData) {
+            const data = statusData || window._lastStatusData || {};
+            const tableIdEl = document.getElementById('staffTableId');
+            if (tableIdEl) tableIdEl.textContent = currentTableId;
+
+            const stateBadge = document.getElementById('staffTableStateBadge');
+            if (stateBadge) {
+                const state = data.state || currentState.toLowerCase();
+                stateBadge.textContent = state.toUpperCase();
+                stateBadge.className = 'staff-badge ' + (state === 'active' ? 'badge-yellow' : (state === 'available' ? 'badge-green' : 'badge-red'));
+            }
+
+            const pendingAlert = document.getElementById('staffPendingAlert');
+            if (pendingAlert) {
+                pendingAlert.style.display = data.pendingMaintenanceLock ? 'block' : 'none';
+            }
+
+            const outlet1Status = document.getElementById('staffOutlet1Status');
+            if (outlet1Status) {
+                if (data.state === 'active' || currentState === 'ACTIVE') {
+                    outlet1Status.textContent = 'PÄÄLLÄ (Short ON aktiivinen)';
+                    outlet1Status.style.color = 'var(--accent-yellow)';
+                } else {
+                    outlet1Status.textContent = 'Pois päältä (Valmiustila)';
+                    outlet1Status.style.color = 'var(--text-secondary)';
+                }
+            }
+
+            const maintLabel = document.getElementById('btnMaintenanceLabel');
+            if (maintLabel) {
+                if (data.state === 'maintenance_locked' || currentState === 'LOCKED') {
+                    maintLabel.textContent = 'Vapauta huoltotilasta';
+                } else if (data.state === 'active' || currentState === 'ACTIVE') {
+                    maintLabel.textContent = data.pendingMaintenanceLock ? 'Peruuta odottava huoltotila' : 'Aseta huoltotila (pelin jälkeen)';
+                } else {
+                    maintLabel.textContent = 'Aseta huoltotila heti';
+                }
+            }
+
+            const freePlayBtn = document.getElementById('btnGrantFreePlay');
+            if (freePlayBtn) {
+                const isBusy = (data.state === 'active' || currentState === 'ACTIVE' || data.state === 'maintenance_locked' || currentState === 'LOCKED');
+                freePlayBtn.disabled = isBusy;
+                freePlayBtn.style.opacity = isBusy ? '0.5' : '1';
+                freePlayBtn.style.cursor = isBusy ? 'not-allowed' : 'pointer';
+            }
+        }
+
+        // Initialize staff auth state on load
+        if (typeof window !== 'undefined') {
+            checkStaffAuth();
         }
     </script>
 </body>
