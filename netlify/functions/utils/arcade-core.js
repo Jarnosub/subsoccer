@@ -565,7 +565,7 @@ async function reconcileTableState(tableId, tableConfig, netio, isTestMode) {
                                 const { probeOutletOffMqtt } = require('./mqtt-cloud-bridge');
                                 const probeRes = await probeOutletOffMqtt({
                                     deviceSn,
-                                    targetOutletId
+                                    targetOutletId: targetOutputId
                                 });
                                 if (probeRes.confirmedOff === true && probeRes.observedAt) {
                                     isOff = true;
