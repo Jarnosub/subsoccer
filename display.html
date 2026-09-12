@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subsoccer Arcade — Opastusnäyttö</title>
+    <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="qrcode.min.js"></script>
+    <style>
+        :root {
+            --bg-dark: #0a0c10;
+            --bg-card: rgba(18, 22, 31, 0.85);
+            --border-card: rgba(255, 255, 255, 0.1);
+            --sub-red: #E11D48;
+            --sub-red-glow: rgba(225, 29, 72, 0.4);
+            --sub-green: #10B981;
+            --sub-green-glow: rgba(16, 185, 129, 0.4);
+            --sub-yellow: #F59E0B;
+            --sub-yellow-glow: rgba(245, 158, 11, 0.4);
+            --text-primary: #F8FAFC;
+            --text-secondary: #94A3B8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        /* 4K / UHD Scaling */
+        @media (min-width: 2560px) {
+            body { zoom: 1.5; }
+        }
+        @media (min-width: 3800px) {
+            body { zoom: 2.0; }
+        }
+
+        /* Background Video Overlay */
+        .bg-video-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .bg-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.35;
+            filter: contrast(110%) brightness(85%);
+        }
+
+        .bg-gradient-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(10, 12, 16, 0.6) 0%, rgba(10, 12, 16, 0.92) 100%);
+            z-index: 1;
+        }
+
+        /* Main Kiosk Grid */
+        .kiosk-container {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 24px 36px;
+        }
+
+        /* Top Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-card);
+        }
+
+        .brand-box {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .brand-logo {
+            font-family: 'Russo One', sans-serif;
+            font-size: 2.2rem;
+            letter-spacing: 2px;
+            color: #FFFFFF;
+            text-transform: uppercase;
+        }
+
+        .brand-logo span {
+            color: var(--sub-red);
+        }
+
+        .brand-badge {
+            background: rgba(225, 29, 72, 0.15);
+            border: 1px solid var(--sub-red);
+            color: var(--sub-red);
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .header-status-badge {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 22px;
+            border-radius: 999px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+        }
+
+        .status-available {
+            background: rgba(16, 185, 129, 0.18);
+            border: 2px solid var(--sub-green);
+            color: #34D399;
+            box-shadow: 0 0 25px var(--sub-green-glow);
+        }
+
+        .status-active {
+            background: rgba(245, 158, 11, 0.18);
+            border: 2px solid var(--sub-yellow);
+            color: #FBBF24;
+            box-shadow: 0 0 25px var(--sub-yellow-glow);
+        }
+
+        .status-maintenance {
+            background: rgba(239, 68, 68, 0.18);
+            border: 2px solid #EF4444;
+            color: #F87171;
+        }
+
+        .status-offline {
+            background: rgba(148, 163, 184, 0.15);
+            border: 2px solid var(--text-secondary);
+            color: var(--text-secondary);
+        }
+
+        .pulse-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: currentColor;
+            animation: pulse-ring 1.8s infinite;
+        }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(0.9); opacity: 0.8; }
+            50% { transform: scale(1.3); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.8; }
+        }
+
+        /* Main Content Layout */
+        .content-layout {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 32px;
+            flex: 1;
+            align-items: center;
+            padding: 24px 0;
+            min-height: 0;
+        }
+
+        /* Left Column: Video & Rules */
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            height: 100%;
+            justify-content: center;
+        }
+
+        .video-box {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            max-height: 340px;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--border-card);
+            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
+            background: #000;
+        }
+
+        .video-box video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .rules-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .rule-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-card);
+            border-radius: 12px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .rule-num {
+            font-family: 'Russo One', sans-serif;
+            font-size: 1.5rem;
+            color: var(--sub-red);
+            background: rgba(225, 29, 72, 0.12);
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .rule-text h4 {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #FFFFFF;
+            margin-bottom: 2px;
+        }
+
+        .rule-text p {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            line-height: 1.2;
+        }
+
+        /* Right Column: CTA & Dynamic QR */
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+
+        .cta-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-card);
+            border-radius: 24px;
+            padding: 36px 32px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.6);
+            width: 100%;
+            max-width: 440px;
+        }
+
+        .cta-title {
+            font-family: 'Russo One', sans-serif;
+            font-size: 1.8rem;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+            color: #FFFFFF;
+        }
+
+        .cta-subtitle {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+
+        .qr-wrapper {
+            background: #FFFFFF;
+            padding: 16px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 250px;
+            height: 250px;
+        }
+
+        #qr-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #qr-container img, #qr-container canvas {
+            max-width: 100% !important;
+            max-height: 100% !important;
+        }
+
+        .table-id-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            background: rgba(255, 255, 255, 0.05);
+            padding: 6px 16px;
+            border-radius: 999px;
+            border: 1px solid var(--border-card);
+        }
+
+        .table-id-badge code {
+            color: #FFFFFF;
+            font-family: monospace;
+            font-size: 1rem;
+        }
+
+        /* Footer */
+        footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-card);
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .footer-pulse {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Video -->
+    <div class="bg-video-container">
+        <video class="bg-video" autoplay loop muted playsinline>
+            <source src="bg-video.mp4" type="video/mp4">
+            <source src="hero-video.mp4" type="video/mp4">
+        </video>
+        <div class="bg-gradient-overlay"></div>
+    </div>
+
+    <div class="kiosk-container">
+        <!-- HEADER -->
+        <header>
+            <div class="brand-box">
+                <div class="brand-logo">SUB<span>SOCCER</span></div>
+                <div class="brand-badge"><i class="fas fa-bolt" style="margin-right: 4px;"></i> ARCADE PULSE</div>
+            </div>
+
+            <div class="header-status-badge status-available" id="statusBadge">
+                <div class="pulse-dot" id="statusDot"></div>
+                <span id="statusText">PÖYTÄ VAPAA — PELAA NYT</span>
+            </div>
+        </header>
+
+        <!-- MAIN LAYOUT -->
+        <main class="content-layout">
+            <!-- Left: Video & Rules -->
+            <section class="left-panel">
+                <div class="video-box">
+                    <video autoplay loop muted playsinline poster="assets/cards_display_cases.webp">
+                        <source src="hero-video.mp4" type="video/mp4">
+                        <source src="bg-video.mp4" type="video/mp4">
+                    </video>
+                </div>
+
+                <div class="rules-grid">
+                    <div class="rule-card">
+                        <div class="rule-num">1</div>
+                        <div class="rule-text">
+                            <h4>Istu vastakkain</h4>
+                            <p>Molemmat pelaajat istuvat omille penkeilleen.</p>
+                        </div>
+                    </div>
+                    <div class="rule-card">
+                        <div class="rule-num">2</div>
+                        <div class="rule-text">
+                            <h4>Aloituspotku</h4>
+                            <p>Pallo asetetaan keskipisteeseen ja pilli viheltää.</p>
+                        </div>
+                    </div>
+                    <div class="rule-card">
+                        <div class="rule-num">3</div>
+                        <div class="rule-text">
+                            <h4>Jalat omalla puolella</h4>
+                            <p>Pelaaminen tapahtuu aina omalta kenttäpuoliskolta.</p>
+                        </div>
+                    </div>
+                    <div class="rule-card">
+                        <div class="rule-num">4</div>
+                        <div class="rule-text">
+                            <h4>3 Maalia voittaa</h4>
+                            <p>Ensimmäisenä kolme maalia tehnyt vie voiton!</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right: Dynamic QR & Action -->
+            <section class="right-panel">
+                <div class="cta-card">
+                    <div class="cta-title" id="ctaTitle">SKANNAA JA PELAA</div>
+                    <div class="cta-subtitle" id="ctaSubtitle">Avaa puhelimesi kamera ja aloita peli pöydällä</div>
+
+                    <div class="qr-wrapper">
+                        <div id="qr-container"></div>
+                    </div>
+
+                    <div class="table-id-badge">
+                        <i class="fas fa-hashtag" style="color: var(--sub-red);"></i>
+                        <span>PÖYTÄ:</span>
+                        <code id="displayTableId">demo-pulse-01</code>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- FOOTER -->
+        <footer>
+            <div class="footer-pulse">
+                <i class="fas fa-circle-check" style="color: var(--sub-green);"></i>
+                <span id="kioskConnectionText">Kiosk Online · Heartbeat aktiivinen</span>
+            </div>
+            <div>The Official Bench Soccer Phenomenon · subsoccer.com</div>
+        </footer>
+    </div>
+
+    <script>
+        // Extract table ID from URL query parameters (default: demo-pulse-01)
+        const urlParams = new URLSearchParams(window.location.search);
+        const tableId = (urlParams.get('table') || 'demo-pulse-01').trim();
+        document.getElementById('displayTableId').textContent = tableId;
+
+        // Construct dynamic game URL pointing to arcade checkout page
+        const gameUrl = `${window.location.origin}/arcade.html?table=${encodeURIComponent(tableId)}`;
+
+        // Generate QR code
+        function renderQrCode(targetUrl) {
+            const container = document.getElementById('qr-container');
+            container.innerHTML = '';
+            if (typeof QRCode !== 'undefined') {
+                new QRCode(container, {
+                    text: targetUrl,
+                    width: 218,
+                    height: 218,
+                    colorDark: '#000000',
+                    colorLight: '#ffffff',
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+            } else {
+                container.innerHTML = '<div style="color: #000; font-size: 0.8rem; text-align: center;">QR Code Loading...</div>';
+            }
+        }
+
+        renderQrCode(gameUrl);
+
+        // State elements
+        const statusBadge = document.getElementById('statusBadge');
+        const statusText = document.getElementById('statusText');
+        const ctaTitle = document.getElementById('ctaTitle');
+        const ctaSubtitle = document.getElementById('ctaSubtitle');
+        const kioskConnText = document.getElementById('kioskConnectionText');
+
+        // Apply UI state (available, active, maintenance, offline neutral)
+        function updateScreenState(state) {
+            statusBadge.className = 'header-status-badge';
+
+            if (state === 'available') {
+                statusBadge.classList.add('status-available');
+                statusText.textContent = 'PÖYTÄ VAPAA — PELAA NYT';
+                ctaTitle.textContent = 'SKANNAA JA PELAA';
+                ctaSubtitle.textContent = 'Avaa puhelimesi kamera ja aloita peli pöydällä';
+            } else if (state === 'active') {
+                statusBadge.classList.add('status-active');
+                statusText.textContent = 'PELI KÄYNNISSÄ';
+                ctaTitle.textContent = 'PELI KÄYNNISSÄ';
+                ctaSubtitle.textContent = 'Pöydällä pelataan parhaillaan. Seuraava peli vapautuu pian!';
+            } else if (state === 'maintenance_locked' || state === 'locked') {
+                statusBadge.classList.add('status-maintenance');
+                statusText.textContent = 'PÖYTÄ HUOLLOSSA';
+                ctaTitle.textContent = 'HUOLTOTILA';
+                ctaSubtitle.textContent = 'Pöytä on tilapäisesti huollossa. Palaamme pian!';
+            } else {
+                // Offline / Error: Neutral informational screen, NEVER claims table is free!
+                statusBadge.classList.add('status-offline');
+                statusText.textContent = 'SUBSOCCER LIVE';
+                ctaTitle.textContent = 'SUBSOCCER ARENA';
+                ctaSubtitle.textContent = 'Tutustu viralliseen Subsoccer-peliin skannaamalla koodi';
+            }
+        }
+
+        // Poll table status every 5 seconds
+        async function fetchStatus() {
+            try {
+                const res = await fetch(`/.netlify/functions/arcade-session?action=status&table=${encodeURIComponent(tableId)}`);
+                if (!res.ok) {
+                    throw new Error(`HTTP ${res.status}`);
+                }
+                const data = await res.json();
+                const state = data.state || (data.tableState) || 'unknown';
+                updateScreenState(state);
+                kioskConnText.textContent = `Kiosk Online · ${new Date().toLocaleTimeString('fi-FI')}`;
+            } catch (err) {
+                console.warn('[KIOSK] Status fetch failed, showing neutral offline screen:', err.message);
+                updateScreenState('offline');
+                kioskConnText.textContent = 'Offline-tila · Yhteyttä palvelimeen muodostetaan';
+            }
+        }
+
+        // Send heartbeat to backend every 30 seconds
+        async function sendHeartbeat() {
+            try {
+                await fetch('/.netlify/functions/arcade-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'display-heartbeat',
+                        table: tableId
+                    })
+                });
+            } catch (e) {
+                console.warn('[KIOSK] Heartbeat error:', e.message);
+            }
+        }
+
+        // Initial calls
+        fetchStatus();
+        sendHeartbeat();
+
+        // Intervals
+        setInterval(fetchStatus, 5000);
+        setInterval(sendHeartbeat, 30000);
+    </script>
+</body>
+</html>

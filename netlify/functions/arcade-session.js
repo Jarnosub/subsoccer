@@ -56,8 +56,14 @@ const {
     verifyVenuePin,
     setVenuePin,
     resetVenueLockout,
+    validateDistinctOutputs,
+    syncAuxOutlets,
+    setAuxOutletMode,
+    recordDisplayHeartbeat,
+    getDisplayStatus,
+    getLightsStatus,
     _setSupabaseClient: _setCoreSupabaseClient
-} = require('./utils/arcade-core');
+} = require('./utils/arcade-core.js');
 
 let supabase = getSupabase();
 
@@ -471,6 +477,8 @@ exports.handler = async function (event, context) {
             }
 
             const netioStatus = netio ? await netio.getStatus().catch(() => ({ mode: 'offline' })) : { mode: 'offline' };
+            const displayStatus = getDisplayStatus(tableConfig, netioStatus);
+            const lightsStatus = getLightsStatus(tableConfig, netioStatus);
 
             return {
                 statusCode: 200,
@@ -483,6 +491,8 @@ exports.handler = async function (event, context) {
                     timeRemainingSecs,
                     expiresAt: activeExpiresAt,
                     outputId: tableConfig?.switch_output_id || 1,
+                    display: displayStatus,
+                    lights: lightsStatus,
                     hardware: {
                         mode: netio?.isMock ? 'simulation' : 'hardware',
                         endpoint: netio?.isMock ? 'simulation' : (tableConfig?.device_endpoint ? 'table_endpoint' : 'connected'),
@@ -1046,6 +1056,46 @@ exports.handler = async function (event, context) {
                         expiresAt: actRes.expiresAt,
                         hardware: actRes.hardware
                     })
+                };
+            }
+
+            // ─── ACTION: SET AUX OUTLET (Display & Lights / Staff Moderator) ───
+            if (action === 'set-aux-outlet') {
+                const auth = await authenticateModerator(event, body, table, isTestMode);
+                if (!auth.ok) {
+                    return {
+                        statusCode: auth.statusCode,
+                        headers: CORS_HEADERS,
+                        body: JSON.stringify({ success: false, error: auth.error, code: auth.code })
+                    };
+                }
+
+                const outletRole = body.outletRole || (body.outletId === 2 ? 'display' : (body.outletId === 3 ? 'lights' : null));
+                const mode = body.mode || (body.state === 'auto' ? 'auto' : (body.state ? 'manual_on' : 'manual_off'));
+                const durationMinutes = body.durationMinutes ? Number(body.durationMinutes) : 30;
+
+                const res = await setAuxOutletMode({
+                    tableId: table,
+                    outletRole,
+                    mode,
+                    durationMinutes,
+                    isTestMode
+                });
+
+                return {
+                    statusCode: res.statusCode || (res.success ? 200 : 400),
+                    headers: CORS_HEADERS,
+                    body: JSON.stringify(res)
+                };
+            }
+
+            // ─── ACTION: DISPLAY HEARTBEAT ───
+            if (action === 'display-heartbeat') {
+                const res = await recordDisplayHeartbeat({ tableId: table, isTestMode });
+                return {
+                    statusCode: res.statusCode || (res.success ? 200 : 400),
+                    headers: CORS_HEADERS,
+                    body: JSON.stringify(res)
                 };
             }
 

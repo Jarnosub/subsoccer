@@ -75,11 +75,11 @@ getSupabase();
 // In-memory simulation fallback storage (used when in test mode or without Supabase credentials)
 const memoryDb = {
     tableConfigs: new Map([
-        ['demo-pulse-01', { table_id: 'demo-pulse-01', venue_id: 'venue-demo-01', is_enabled: true, lock_state: 'available', switch_output_id: 1, is_free_play_allowed: true, device_endpoint: null }],
-        ['demo-arcade-02', { table_id: 'demo-arcade-02', venue_id: 'venue-demo-01', is_enabled: true, lock_state: 'available', switch_output_id: 1, is_free_play_allowed: false, device_endpoint: null }],
-        ['demo-locked-03', { table_id: 'demo-locked-03', venue_id: 'venue-demo-01', is_enabled: false, lock_state: 'maintenance_locked', switch_output_id: 1, is_free_play_allowed: false, device_endpoint: null }],
-        ['subsoccer-tripla-live-01', { table_id: 'subsoccer-tripla-live-01', venue_id: 'venue-tripla', is_enabled: true, lock_state: 'available', switch_output_id: 1, is_free_play_allowed: false, device_endpoint: null }],
-        ['subsoccer-freeplay-venue-01', { table_id: 'subsoccer-freeplay-venue-01', venue_id: 'venue-freeplay-01', is_enabled: true, lock_state: 'available', switch_output_id: 1, is_free_play_allowed: true, device_endpoint: null }]
+        ['demo-pulse-01', { table_id: 'demo-pulse-01', venue_id: 'venue-demo-01', is_enabled: true, lock_state: 'available', switch_output_id: 1, display_output_id: 2, lights_output_id: 3, display_mode: 'auto', lights_mode: 'auto', display_manual_until: null, lights_manual_until: null, display_last_heartbeat_at: null, is_free_play_allowed: true, device_endpoint: null }],
+        ['demo-arcade-02', { table_id: 'demo-arcade-02', venue_id: 'venue-demo-01', is_enabled: true, lock_state: 'available', switch_output_id: 1, display_output_id: 2, lights_output_id: 3, display_mode: 'auto', lights_mode: 'auto', display_manual_until: null, lights_manual_until: null, display_last_heartbeat_at: null, is_free_play_allowed: false, device_endpoint: null }],
+        ['demo-locked-03', { table_id: 'demo-locked-03', venue_id: 'venue-demo-01', is_enabled: false, lock_state: 'maintenance_locked', switch_output_id: 1, display_output_id: 2, lights_output_id: 3, display_mode: 'auto', lights_mode: 'auto', display_manual_until: null, lights_manual_until: null, display_last_heartbeat_at: null, is_free_play_allowed: false, device_endpoint: null }],
+        ['subsoccer-tripla-live-01', { table_id: 'subsoccer-tripla-live-01', venue_id: 'venue-tripla', is_enabled: true, lock_state: 'available', switch_output_id: 1, display_output_id: 2, lights_output_id: 3, display_mode: 'auto', lights_mode: 'auto', display_manual_until: null, lights_manual_until: null, display_last_heartbeat_at: null, is_free_play_allowed: false, device_endpoint: null }],
+        ['subsoccer-freeplay-venue-01', { table_id: 'subsoccer-freeplay-venue-01', venue_id: 'venue-freeplay-01', is_enabled: true, lock_state: 'available', switch_output_id: 1, display_output_id: 2, lights_output_id: 3, display_mode: 'auto', lights_mode: 'auto', display_manual_until: null, lights_manual_until: null, display_last_heartbeat_at: null, is_free_play_allowed: true, device_endpoint: null }]
     ]),
     venues: new Map([
         ['venue-demo-01', { venue_id: 'venue-demo-01', name: 'Mall of Tripla Demo Venue', pin_hash: null, pin_version: 1, venue_failed_attempts: 0, venue_locked_until: null }],
@@ -178,6 +178,13 @@ function getTableConfig(tableId, isTestMode) {
             is_enabled: true,
             lock_state: 'available',
             switch_output_id: 1,
+            display_output_id: 2,
+            lights_output_id: 3,
+            display_mode: 'auto',
+            lights_mode: 'auto',
+            display_manual_until: null,
+            lights_manual_until: null,
+            display_last_heartbeat_at: null,
             is_free_play_allowed: true,
             device_endpoint: null
         };
@@ -367,6 +374,9 @@ async function reconcileTableState(tableId, tableConfig, netio, isTestMode) {
                     payload: { reconciledAt: new Date().toISOString() },
                     created_at: new Date().toISOString()
                 });
+                try {
+                    await syncAuxOutlets({ tableId, isTestMode, trigger: 'game_completed' });
+                } catch (e) {}
             } else {
                 session.status = 'hardware_uncertain';
                 if (tableConfig) tableConfig.lock_state = 'error_locked';
@@ -561,6 +571,10 @@ async function reconcileTableState(tableId, tableConfig, netio, isTestMode) {
                                 event_type: 'switch_confirmed_off',
                                 payload: { confirmedAt: confirmedOffAt }
                             });
+                        } catch (e) {}
+
+                        try {
+                            await syncAuxOutlets({ tableId, isTestMode, trigger: 'game_completed' });
                         } catch (e) {}
                     } else {
                         await sb
@@ -986,6 +1000,12 @@ async function setTableMaintenance({ tableId, maintenanceEnabled, venueId = null
                 return { success: false, statusCode: 500, code: 'DB_RPC_ERROR', error: error.message };
             }
 
+            if (data?.success) {
+                try {
+                    await syncAuxOutlets({ tableId, isTestMode, trigger: 'maintenance_changed' });
+                } catch (e) {}
+            }
+
             return data;
         } catch (err) {
             return { success: false, statusCode: 500, code: 'DB_RPC_EXCEPTION', error: err.message };
@@ -1048,6 +1068,10 @@ async function setTableMaintenance({ tableId, maintenanceEnabled, venueId = null
     });
 
     saveMemorySessions();
+
+    try {
+        await syncAuxOutlets({ tableId, isTestMode, trigger: 'maintenance_changed' });
+    } catch (e) {}
 
     return {
         success: true,
@@ -1472,6 +1496,10 @@ async function activateSessionCore({
             });
         } catch (e) {}
 
+        try {
+            await syncAuxOutlets({ tableId: table, isTestMode, trigger: 'game_activated' });
+        } catch (e) {}
+
         return {
             statusCode: 200,
             headers: CORS_HEADERS,
@@ -1759,6 +1787,10 @@ async function activateSessionCore({
         payload: { hardware: netioResult, expiresAt: expiresAtIso, outputId: targetOutputId },
         created_at: new Date().toISOString()
     });
+
+    try {
+        await syncAuxOutlets({ tableId: table, isTestMode, trigger: 'game_activated' });
+    } catch (e) {}
 
     return {
         statusCode: 200,
@@ -2784,6 +2816,288 @@ async function resetVenueLockout({ venueId, isTestMode }) {
     };
 }
 
+function validateDistinctOutputs(config) {
+    if (!config) return { valid: true };
+    const gameId = config.switch_output_id !== undefined ? Number(config.switch_output_id) : 1;
+    const displayId = config.display_output_id !== undefined && config.display_output_id !== null ? Number(config.display_output_id) : null;
+    const lightsId = config.lights_output_id !== undefined && config.lights_output_id !== null ? Number(config.lights_output_id) : null;
+
+    if (displayId !== null && displayId === gameId) {
+        return { valid: false, error: `Display output ID (${displayId}) cannot match game output ID (${gameId})` };
+    }
+    if (lightsId !== null && lightsId === gameId) {
+        return { valid: false, error: `Lights output ID (${lightsId}) cannot match game output ID (${gameId})` };
+    }
+    if (displayId !== null && lightsId !== null && displayId === lightsId) {
+        return { valid: false, error: `Display output ID (${displayId}) cannot match lights output ID (${lightsId})` };
+    }
+    return { valid: true };
+}
+
+async function syncAuxOutlets({ tableId, isTestMode = false, force = false, trigger = 'auto' }) {
+    const cfg = await getTableConfigAsync(tableId, isTestMode);
+    if (!cfg) return { success: false, error: 'Table config not found' };
+
+    const validation = validateDistinctOutputs(cfg);
+    if (!validation.valid) {
+        console.warn(`[AUX OUTLETS] Invalid output configuration for table ${tableId}: ${validation.error}`);
+        return { success: false, error: validation.error };
+    }
+
+    const netio = getNetioAdapter(cfg, isTestMode);
+    if (!netio) {
+        return { success: true, skipped: true, reason: 'No NetIO adapter configured' };
+    }
+
+    const now = Date.now();
+    const results = { display: null, lights: null };
+
+    // 1. Display target state calculation
+    const displayOutputId = cfg.display_output_id !== undefined && cfg.display_output_id !== null ? Number(cfg.display_output_id) : 2;
+    let targetDisplayState = 1; // Always ON by default
+    if (cfg.display_mode === 'manual_off' && cfg.display_manual_until && new Date(cfg.display_manual_until).getTime() > now) {
+        targetDisplayState = 0;
+    } else if (cfg.display_mode === 'manual_on' && cfg.display_manual_until && new Date(cfg.display_manual_until).getTime() > now) {
+        targetDisplayState = 1;
+    } else if (cfg.display_mode !== 'auto' && cfg.display_manual_until && new Date(cfg.display_manual_until).getTime() <= now) {
+        cfg.display_mode = 'auto';
+        cfg.display_manual_until = null;
+        targetDisplayState = 1;
+    }
+
+    // 2. Lights target state calculation
+    const lightsOutputId = cfg.lights_output_id !== undefined && cfg.lights_output_id !== null ? Number(cfg.lights_output_id) : 3;
+    let targetLightsState = 1; // Default auto: ON when available
+    if (cfg.lights_mode === 'manual_off' && cfg.lights_manual_until && new Date(cfg.lights_manual_until).getTime() > now) {
+        targetLightsState = 0;
+    } else if (cfg.lights_mode === 'manual_on' && cfg.lights_manual_until && new Date(cfg.lights_manual_until).getTime() > now) {
+        targetLightsState = 1;
+    } else {
+        if (cfg.lights_mode !== 'auto' && cfg.lights_manual_until && new Date(cfg.lights_manual_until).getTime() <= now) {
+            cfg.lights_mode = 'auto';
+            cfg.lights_manual_until = null;
+        }
+
+        const isTableBusy = (cfg.lock_state === 'active' || cfg.lock_state === 'pending_payment') || (memoryDb.sessions.get(tableId)?.status === 'active');
+        const isTableMaintenance = (cfg.lock_state === 'maintenance_locked' || cfg.lock_state === 'error_locked');
+
+        if (isTableBusy || isTableMaintenance) {
+            targetLightsState = 0;
+        } else {
+            targetLightsState = 1;
+        }
+    }
+
+    if (!cfg._last_aux_states) {
+        cfg._last_aux_states = {};
+    }
+
+    // Execute Display command if needed
+    if (displayOutputId && (force || cfg._last_aux_states.display !== targetDisplayState)) {
+        try {
+            await netio.setOutletState(displayOutputId, targetDisplayState === 1);
+            cfg._last_aux_states.display = targetDisplayState;
+            results.display = { outputId: displayOutputId, state: targetDisplayState, success: true };
+        } catch (dErr) {
+            console.warn(`[AUX OUTLETS WARNING] Failed to set display outlet ${displayOutputId} to ${targetDisplayState}:`, dErr.message);
+            results.display = { outputId: displayOutputId, error: dErr.message, success: false };
+            const sb = getSupabase();
+            if (sb) {
+                try {
+                    await sb.from('arcade_events').insert({
+                        table_id: tableId,
+                        event_type: 'aux_outlet_warning',
+                        payload: { outletRole: 'display', outputId: displayOutputId, targetState: targetDisplayState, error: dErr.message, trigger }
+                    });
+                } catch (e) {}
+            }
+        }
+    } else {
+        results.display = { outputId: displayOutputId, state: cfg._last_aux_states.display ?? targetDisplayState, unchanged: true };
+    }
+
+    // Execute Lights command if needed
+    if (lightsOutputId && (force || cfg._last_aux_states.lights !== targetLightsState)) {
+        try {
+            await netio.setOutletState(lightsOutputId, targetLightsState === 1);
+            cfg._last_aux_states.lights = targetLightsState;
+            results.lights = { outputId: lightsOutputId, state: targetLightsState, success: true };
+        } catch (lErr) {
+            console.warn(`[AUX OUTLETS WARNING] Failed to set lights outlet ${lightsOutputId} to ${targetLightsState}:`, lErr.message);
+            results.lights = { outputId: lightsOutputId, error: lErr.message, success: false };
+            const sb = getSupabase();
+            if (sb) {
+                try {
+                    await sb.from('arcade_events').insert({
+                        table_id: tableId,
+                        event_type: 'aux_outlet_warning',
+                        payload: { outletRole: 'lights', outputId: lightsOutputId, targetState: targetLightsState, error: lErr.message, trigger }
+                    });
+                } catch (e) {}
+            }
+        }
+    } else {
+        results.lights = { outputId: lightsOutputId, state: cfg._last_aux_states.lights ?? targetLightsState, unchanged: true };
+    }
+
+    return {
+        success: true,
+        trigger,
+        results
+    };
+}
+
+async function setAuxOutletMode({ tableId, outletRole, mode, durationMinutes = 30, isTestMode }) {
+    if (!['display', 'lights'].includes(outletRole)) {
+        return { success: false, statusCode: 400, code: 'INVALID_PARAMETERS', error: "outletRole must be 'display' or 'lights'" };
+    }
+    if (!['auto', 'manual_on', 'manual_off'].includes(mode)) {
+        return { success: false, statusCode: 400, code: 'INVALID_PARAMETERS', error: "mode must be 'auto', 'manual_on', or 'manual_off'" };
+    }
+
+    const cfg = await getTableConfigAsync(tableId, isTestMode);
+    if (!cfg) {
+        return { success: false, statusCode: 404, code: 'TABLE_NOT_FOUND', error: 'Pöytää ei löydy.' };
+    }
+
+    const outputId = outletRole === 'display' 
+        ? (cfg.display_output_id !== undefined && cfg.display_output_id !== null ? Number(cfg.display_output_id) : 2)
+        : (cfg.lights_output_id !== undefined && cfg.lights_output_id !== null ? Number(cfg.lights_output_id) : 3);
+
+    const manualUntil = mode === 'auto' ? null : new Date(Date.now() + (durationMinutes || 30) * 60000).toISOString();
+
+    const sb = getSupabase();
+    if (sb) {
+        try {
+            await sb.rpc('arcade_set_aux_outlet_mode', {
+                p_table_id: tableId,
+                p_outlet_role: outletRole,
+                p_mode: mode,
+                p_duration_minutes: durationMinutes
+            });
+        } catch (e) {
+            console.warn('[ARCADE-CORE] Failed to persist aux mode to DB:', e.message);
+        }
+    }
+
+    if (outletRole === 'display') {
+        cfg.display_mode = mode;
+        cfg.display_manual_until = manualUntil;
+    } else {
+        cfg.lights_mode = mode;
+        cfg.lights_manual_until = manualUntil;
+    }
+
+    const memCfg = memoryDb.tableConfigs.get(tableId);
+    if (memCfg && memCfg !== cfg) {
+        if (outletRole === 'display') {
+            memCfg.display_mode = mode;
+            memCfg.display_manual_until = manualUntil;
+        } else {
+            memCfg.lights_mode = mode;
+            memCfg.lights_manual_until = manualUntil;
+        }
+    }
+
+    const syncRes = await syncAuxOutlets({ tableId, isTestMode, force: true, trigger: `moderator_manual_${mode}` });
+    const actualState = outletRole === 'display' ? syncRes.results?.display?.state : syncRes.results?.lights?.state;
+
+    memoryDb.events.push({
+        table_id: tableId,
+        venue_id: cfg.venue_id || null,
+        event_type: 'moderator_aux_override',
+        payload: {
+            outletRole,
+            outputId,
+            mode,
+            durationMinutes,
+            manualUntil,
+            actualState
+        },
+        created_at: new Date().toISOString()
+    });
+
+    saveMemorySessions();
+
+    return {
+        success: true,
+        statusCode: 200,
+        tableId,
+        outletRole,
+        outputId,
+        mode,
+        manualUntil,
+        actualState: actualState ?? (mode === 'manual_off' ? 0 : 1)
+    };
+}
+
+async function recordDisplayHeartbeat({ tableId, isTestMode }) {
+    if (!tableId) {
+        return { success: false, statusCode: 400, code: 'INVALID_PARAMETERS', error: 'tableId is required' };
+    }
+    const cfg = await getTableConfigAsync(tableId, isTestMode);
+    if (!cfg) {
+        return { success: false, statusCode: 404, code: 'TABLE_NOT_FOUND', error: 'Table not found' };
+    }
+
+    const heartbeatAt = new Date().toISOString();
+    cfg.display_last_heartbeat_at = heartbeatAt;
+    const memCfg = memoryDb.tableConfigs.get(tableId);
+    if (memCfg && memCfg !== cfg) {
+        memCfg.display_last_heartbeat_at = heartbeatAt;
+    }
+
+    const sb = getSupabase();
+    if (sb) {
+        try {
+            await sb.rpc('arcade_record_display_heartbeat', { p_table_id: tableId });
+        } catch (e) {}
+    }
+
+    return {
+        success: true,
+        statusCode: 200,
+        tableId,
+        heartbeatAt
+    };
+}
+
+function getDisplayStatus(tableConfig, netioStatus) {
+    const lastHeartbeat = tableConfig?.display_last_heartbeat_at;
+    const now = Date.now();
+    const heartbeatAgeSec = lastHeartbeat ? Math.round((now - new Date(lastHeartbeat).getTime()) / 1000) : null;
+    
+    const displayOutputId = tableConfig?.display_output_id !== undefined && tableConfig?.display_output_id !== null ? Number(tableConfig.display_output_id) : 2;
+    const outlet = netioStatus?.outputs?.find(o => o.id === displayOutputId);
+    const isRelayOn = outlet ? outlet.state === 1 : true;
+
+    // Display is considered online if relay is ON and heartbeat has been seen within 90s
+    const isOnline = isRelayOn && heartbeatAgeSec !== null && heartbeatAgeSec <= 90;
+
+    return {
+        outletId: displayOutputId,
+        state: outlet ? outlet.state : (isRelayOn ? 1 : 0),
+        mode: tableConfig?.display_mode || 'auto',
+        manualUntil: tableConfig?.display_manual_until || null,
+        isOnline,
+        heartbeatAgeSec,
+        lastHeartbeatAt: lastHeartbeat || null
+    };
+}
+
+function getLightsStatus(tableConfig, netioStatus) {
+    const lightsOutputId = tableConfig?.lights_output_id !== undefined && tableConfig?.lights_output_id !== null ? Number(tableConfig.lights_output_id) : 3;
+    const outlet = netioStatus?.outputs?.find(o => o.id === lightsOutputId);
+    const isRelayOn = outlet ? outlet.state === 1 : (tableConfig?.lock_state === 'available');
+
+    return {
+        outletId: lightsOutputId,
+        state: outlet ? outlet.state : (isRelayOn ? 1 : 0),
+        mode: tableConfig?.lights_mode || 'auto',
+        manualUntil: tableConfig?.lights_manual_until || null
+    };
+}
+
 function resetMemoryDb() {
     memoryDb.sessions.clear();
     memoryDb.orders.clear();
@@ -2798,11 +3112,11 @@ function resetMemoryDb() {
     memoryDb.events.length = 0;
     memoryDb._simulateDbErrorOnActivate = false;
     memoryDb._simulateDispatchError = false;
-    memoryDb.tableConfigs.set('demo-pulse-01', { table_id: 'demo-pulse-01', venue_id: 'venue-demo-01', is_enabled: true, lock_state: 'available', switch_output_id: 1, is_free_play_allowed: true, device_endpoint: null });
-    memoryDb.tableConfigs.set('demo-arcade-02', { table_id: 'demo-arcade-02', venue_id: 'venue-demo-01', is_enabled: true, lock_state: 'available', switch_output_id: 1, is_free_play_allowed: false, device_endpoint: null });
-    memoryDb.tableConfigs.set('demo-locked-03', { table_id: 'demo-locked-03', venue_id: 'venue-demo-01', is_enabled: false, lock_state: 'maintenance_locked', switch_output_id: 1, is_free_play_allowed: false, device_endpoint: null });
-    memoryDb.tableConfigs.set('subsoccer-tripla-live-01', { table_id: 'subsoccer-tripla-live-01', venue_id: 'venue-tripla', is_enabled: true, lock_state: 'available', switch_output_id: 1, is_free_play_allowed: false, device_endpoint: null });
-    memoryDb.tableConfigs.set('subsoccer-freeplay-venue-01', { table_id: 'subsoccer-freeplay-venue-01', venue_id: 'venue-freeplay-01', is_enabled: true, lock_state: 'available', switch_output_id: 1, is_free_play_allowed: true, device_endpoint: null });
+    memoryDb.tableConfigs.set('demo-pulse-01', { table_id: 'demo-pulse-01', venue_id: 'venue-demo-01', is_enabled: true, lock_state: 'available', switch_output_id: 1, display_output_id: 2, lights_output_id: 3, display_mode: 'auto', lights_mode: 'auto', display_manual_until: null, lights_manual_until: null, display_last_heartbeat_at: null, is_free_play_allowed: true, device_endpoint: null });
+    memoryDb.tableConfigs.set('demo-arcade-02', { table_id: 'demo-arcade-02', venue_id: 'venue-demo-01', is_enabled: true, lock_state: 'available', switch_output_id: 1, display_output_id: 2, lights_output_id: 3, display_mode: 'auto', lights_mode: 'auto', display_manual_until: null, lights_manual_until: null, display_last_heartbeat_at: null, is_free_play_allowed: false, device_endpoint: null });
+    memoryDb.tableConfigs.set('demo-locked-03', { table_id: 'demo-locked-03', venue_id: 'venue-demo-01', is_enabled: false, lock_state: 'maintenance_locked', switch_output_id: 1, display_output_id: 2, lights_output_id: 3, display_mode: 'auto', lights_mode: 'auto', display_manual_until: null, lights_manual_until: null, display_last_heartbeat_at: null, is_free_play_allowed: false, device_endpoint: null });
+    memoryDb.tableConfigs.set('subsoccer-tripla-live-01', { table_id: 'subsoccer-tripla-live-01', venue_id: 'venue-tripla', is_enabled: true, lock_state: 'available', switch_output_id: 1, display_output_id: 2, lights_output_id: 3, display_mode: 'auto', lights_mode: 'auto', display_manual_until: null, lights_manual_until: null, display_last_heartbeat_at: null, is_free_play_allowed: false, device_endpoint: null });
+    memoryDb.tableConfigs.set('subsoccer-freeplay-venue-01', { table_id: 'subsoccer-freeplay-venue-01', venue_id: 'venue-freeplay-01', is_enabled: true, lock_state: 'available', switch_output_id: 1, display_output_id: 2, lights_output_id: 3, display_mode: 'auto', lights_mode: 'auto', display_manual_until: null, lights_manual_until: null, display_last_heartbeat_at: null, is_free_play_allowed: true, device_endpoint: null });
     memoryDb.venues.set('venue-demo-01', { venue_id: 'venue-demo-01', name: 'Mall of Tripla Demo Venue', pin_hash: null, pin_version: 1, venue_failed_attempts: 0, venue_locked_until: null });
     memoryDb.venues.set('venue-tripla', { venue_id: 'venue-tripla', name: 'Mall of Tripla Subsoccer Lounge', pin_hash: null, pin_version: 1, venue_failed_attempts: 0, venue_locked_until: null });
     memoryDb.venues.set('venue-freeplay-01', { venue_id: 'venue-freeplay-01', name: 'Freeplay Venue', pin_hash: null, pin_version: 1, venue_failed_attempts: 0, venue_locked_until: null });
@@ -2849,6 +3163,12 @@ module.exports = {
     verifyVenuePin,
     setVenuePin,
     resetVenueLockout,
+    validateDistinctOutputs,
+    syncAuxOutlets,
+    setAuxOutletMode,
+    recordDisplayHeartbeat,
+    getDisplayStatus,
+    getLightsStatus,
     _setSupabaseClient: (client) => { supabase = client; },
     _getSupabaseClient: () => supabase
 };

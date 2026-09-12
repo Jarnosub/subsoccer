@@ -1567,13 +1567,39 @@
                         <span>Lähtö 1 (Pulse Pelipöytä)</span>
                         <span id="staffOutlet1Status" style="font-weight: 500;">Pois päältä (Valmiustila)</span>
                     </div>
-                    <div class="staff-telemetry-row">
-                        <span>Lähtö 2 (Opastusnäyttö)</span>
-                        <span style="color: var(--text-secondary); font-size: 0.8rem;">(Ohjaus tulossa vaiheessa 2)</span>
+                    <div class="staff-telemetry-row" style="flex-direction: column; align-items: stretch; gap: 6px; padding: 10px 0; border-bottom: 1px solid var(--border-color);">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>Lähtö 2 (Opastusnäyttö)</span>
+                            <span id="staffOutlet2Status" style="font-weight: 600; font-size: 0.85rem; color: var(--accent-green);">PÄÄLLÄ</span>
+                        </div>
+                        <div style="display: flex; gap: 6px; margin-top: 4px;">
+                            <button type="button" class="staff-quick-btn" onclick="setAuxOutlet('display', 'manual_on', 60)" style="flex: 1; padding: 6px 8px; font-size: 0.75rem;">
+                                <i class="fas fa-power-off"></i> Pakota ON
+                            </button>
+                            <button type="button" class="staff-quick-btn" onclick="setAuxOutlet('display', 'manual_off', 60)" style="flex: 1; padding: 6px 8px; font-size: 0.75rem;">
+                                <i class="fas fa-moon"></i> Pakota OFF
+                            </button>
+                            <button type="button" class="staff-quick-btn" onclick="setAuxOutlet('display', 'auto')" style="flex: 1; padding: 6px 8px; font-size: 0.75rem; border-color: var(--accent-blue); color: var(--accent-blue);">
+                                <i class="fas fa-rotate"></i> Auto
+                            </button>
+                        </div>
                     </div>
-                    <div class="staff-telemetry-row">
-                        <span>Lähtö 3 (Huomiovalaistus)</span>
-                        <span style="color: var(--text-secondary); font-size: 0.8rem;">(Ohjaus tulossa vaiheessa 2)</span>
+                    <div class="staff-telemetry-row" style="flex-direction: column; align-items: stretch; gap: 6px; padding: 10px 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>Lähtö 3 (Huomiovalot)</span>
+                            <span id="staffOutlet3Status" style="font-weight: 600; font-size: 0.85rem; color: var(--accent-green);">PÄÄLLÄ</span>
+                        </div>
+                        <div style="display: flex; gap: 6px; margin-top: 4px;">
+                            <button type="button" class="staff-quick-btn" onclick="setAuxOutlet('lights', 'manual_on', 30)" style="flex: 1; padding: 6px 8px; font-size: 0.75rem;">
+                                <i class="fas fa-lightbulb"></i> Sytytä (30m)
+                            </button>
+                            <button type="button" class="staff-quick-btn" onclick="setAuxOutlet('lights', 'manual_off', 30)" style="flex: 1; padding: 6px 8px; font-size: 0.75rem;">
+                                <i class="fas fa-eye-slash"></i> Sammuta (30m)
+                            </button>
+                            <button type="button" class="staff-quick-btn" onclick="setAuxOutlet('lights', 'auto')" style="flex: 1; padding: 6px 8px; font-size: 0.75rem; border-color: var(--accent-blue); color: var(--accent-blue);">
+                                <i class="fas fa-rotate"></i> Auto
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -2810,6 +2836,43 @@
             }
         }
 
+        async function setAuxOutlet(outletRole, mode, durationMinutes = 30) {
+            if (!currentStaffToken) {
+                alert('Kirjaudu sisään ensin.');
+                return;
+            }
+
+            try {
+                const res = await fetch('/.netlify/functions/arcade-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${currentStaffToken}`
+                    },
+                    body: JSON.stringify({
+                        action: 'set-aux-outlet',
+                        table: currentTableId,
+                        outletRole,
+                        mode,
+                        durationMinutes
+                    })
+                });
+
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || !data.success) {
+                    alert(`Lähdön ohjaus epäonnistui: ${data.error || res.statusText}`);
+                    return;
+                }
+
+                alert(mode === 'auto' 
+                    ? `${outletRole === 'display' ? 'Opastusnäyttö' : 'Huomiovalot'} palautettu automaattitilaan.` 
+                    : `${outletRole === 'display' ? 'Opastusnäyttö' : 'Huomiovalot'} asetettu tilaan: ${mode === 'manual_on' ? 'Pakotettu PÄÄLLE' : 'Pakotettu POIS'} (${durationMinutes} min).`);
+                syncStatusWithBackend();
+            } catch (e) {
+                alert(`Verkkovirhe: ${e.message}`);
+            }
+        }
+
         function updateStaffDrawerUI(statusData) {
             const data = statusData || window._lastStatusData || {};
             const tableIdEl = document.getElementById('staffTableId');
@@ -2835,6 +2898,35 @@
                 } else {
                     outlet1Status.textContent = 'Pois päältä (Valmiustila)';
                     outlet1Status.style.color = 'var(--text-secondary)';
+                }
+            }
+
+            const outlet2Status = document.getElementById('staffOutlet2Status');
+            if (outlet2Status) {
+                const d = data.display;
+                if (d) {
+                    let label = d.state === 1 ? 'PÄÄLLÄ' : 'POIS';
+                    if (d.mode && d.mode !== 'auto') label += ` [${d.mode === 'manual_on' ? 'MANUAALI ON' : 'MANUAALI OFF'}]`;
+                    if (d.state === 1 && d.isOnline === false) label += ' (Offline/Käynnistyy)';
+                    outlet2Status.textContent = label;
+                    outlet2Status.style.color = d.state === 1 ? (d.isOnline ? 'var(--accent-green)' : 'var(--accent-yellow)') : 'var(--text-secondary)';
+                } else {
+                    outlet2Status.textContent = 'PÄÄLLÄ (Auto)';
+                    outlet2Status.style.color = 'var(--accent-green)';
+                }
+            }
+
+            const outlet3Status = document.getElementById('staffOutlet3Status');
+            if (outlet3Status) {
+                const l = data.lights;
+                if (l) {
+                    let label = l.state === 1 ? 'PÄÄLLÄ (Houkutusvalo)' : 'POIS PÄÄLTÄ';
+                    if (l.mode && l.mode !== 'auto') label += ` [${l.mode === 'manual_on' ? 'MANUAALI ON' : 'MANUAALI OFF'}]`;
+                    outlet3Status.textContent = label;
+                    outlet3Status.style.color = l.state === 1 ? 'var(--accent-green)' : 'var(--text-secondary)';
+                } else {
+                    outlet3Status.textContent = (data.state === 'available' || currentState === 'AVAILABLE') ? 'PÄÄLLÄ (Auto)' : 'POIS (Auto)';
+                    outlet3Status.style.color = (data.state === 'available' || currentState === 'AVAILABLE') ? 'var(--accent-green)' : 'var(--text-secondary)';
                 }
             }
 
