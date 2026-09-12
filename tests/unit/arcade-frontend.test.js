@@ -53,13 +53,13 @@ describe('Arcade Frontend Client (arcade.html)', () => {
         }
     });
 
-    it('initializes with slot 5 min selected and shows correct package prices', () => {
+    it('initializes with slot 10 min selected and shows correct package prices', () => {
         const slot5 = document.getElementById('slot-5');
         const slot10 = document.getElementById('slot-10');
         const slot20 = document.getElementById('slot-20');
 
-        expect(slot5.classList.contains('selected')).toBe(true);
-        expect(slot10.classList.contains('selected')).toBe(false);
+        expect(slot5.classList.contains('selected')).toBe(false);
+        expect(slot10.classList.contains('selected')).toBe(true);
         expect(slot20.classList.contains('selected')).toBe(false);
 
         expect(slot5.textContent).toContain('2,50 €');
@@ -67,7 +67,7 @@ describe('Arcade Frontend Client (arcade.html)', () => {
         expect(slot20.textContent).toContain('8,00 €');
 
         const btnLabel = document.getElementById('btnActivateLabel');
-        expect(btnLabel.textContent).toContain('MAKSA 5 MIN · 2,50 €');
+        expect(btnLabel.textContent).toContain('Pay & Play · 4,50 €');
     });
 
     it('updates CTA button label when user selects different slots', () => {
@@ -75,15 +75,15 @@ describe('Arcade Frontend Client (arcade.html)', () => {
 
         // Select 10 min
         window.selectSlot(10);
-        expect(btnLabel.textContent).toBe('MAKSA 10 MIN · 4,50 €');
+        expect(btnLabel.textContent).toBe('Pay & Play · 4,50 €');
 
         // Select 20 min
         window.selectSlot(20);
-        expect(btnLabel.textContent).toBe('MAKSA 20 MIN · 8,00 €');
+        expect(btnLabel.textContent).toBe('Pay & Play · 8,00 €');
 
         // Select 30 s test
         window.selectSlot('test30s');
-        expect(btnLabel.textContent).toContain('KÄYNNISTÄ TESTI 30 S');
+        expect(btnLabel.textContent).toContain('START HARDWARE TEST');
     });
 
     it('opens Stripe checkout modal and mounts Payment Element on commercial slot activation', async () => {
@@ -191,7 +191,7 @@ describe('Arcade Frontend Client (arcade.html)', () => {
 
         // Fast-forward timer for poll 1 (pending_activation)
         await vi.advanceTimersByTimeAsync(1500);
-        expect(document.getElementById('startingDesc').textContent).toContain('Käynnistetään NETIO-relettä');
+        expect(document.getElementById('startingDesc').textContent).toContain('Activating NETIO relay');
 
         // Fast-forward timer for poll 2 (active)
         await vi.advanceTimersByTimeAsync(1500);
@@ -200,7 +200,7 @@ describe('Arcade Frontend Client (arcade.html)', () => {
         expect(startingPanel.style.display).toBe('none');
         const activePanel = document.getElementById('activeSessionPanel');
         expect(activePanel.classList.contains('show')).toBe(true);
-        expect(document.getElementById('statusBadgeText').textContent).toBe('In Play');
+        // statusBadge removed from customer view; state is tracked via JS currentState
 
         vi.useRealTimers();
     });
@@ -255,7 +255,7 @@ describe('Arcade Frontend Client (arcade.html)', () => {
         window.resetToAvailable();
         expect(refundedPanel.style.display).toBe('none');
         expect(document.getElementById('packageSection').style.display).toBe('flex');
-        expect(document.getElementById('statusBadgeText').textContent).toBe('Ready');
+        // statusBadge removed from customer view
 
         vi.useRealTimers();
     });
@@ -270,7 +270,7 @@ describe('Arcade Frontend Client (arcade.html)', () => {
 
         // Advance 2 seconds -> onSessionExpired triggered
         vi.advanceTimersByTime(2000);
-        expect(document.getElementById('relayStatusText').textContent).toContain('EXPIRED (COOLDOWN)');
+        // relayStatusText removed from customer view; EXPIRED state is tracked internally
 
         // Advance 4s cooldown
         vi.advanceTimersByTime(4000);
@@ -283,7 +283,7 @@ describe('Arcade Frontend Client (arcade.html)', () => {
         window.resetToAvailable();
         expect(expiredPanel.style.display).toBe('none');
         expect(document.getElementById('packageSection').style.display).toBe('flex');
-        expect(document.getElementById('statusBadgeText').textContent).toBe('Ready');
+        // statusBadge removed from customer view
 
         vi.useRealTimers();
     });
@@ -313,9 +313,9 @@ describe('Arcade Frontend Client (arcade.html)', () => {
         expect(document.getElementById('staffUserEmail').textContent).toContain('staff.demo@subsoccer.com');
         expect(staffBtn.classList.contains('logged-in')).toBe(true);
 
-        // Verify safety notice exists
-        expect(dashboard.textContent).toContain('TURVALLISUUSOHJE');
-        expect(dashboard.textContent).toContain('Short ON');
+        // Verify outlet labels exist
+        expect(dashboard.textContent).toContain('Output 1');
+        expect(dashboard.textContent).toContain('Output 2');
 
         // Close modal
         window.closeStaffModal();
@@ -336,7 +336,7 @@ describe('Arcade Frontend Client (arcade.html)', () => {
         expect(pendingAlert.style.display).toBe('block');
 
         const maintLabel = document.getElementById('btnMaintenanceLabel');
-        expect(maintLabel.textContent).toContain('Peruuta odottava huoltotila');
+        expect(maintLabel.textContent).toContain('Cancel pending maintenance');
 
         // Table active -> free play button is disabled
         const freePlayBtn = document.getElementById('btnGrantFreePlay');

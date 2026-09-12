@@ -218,10 +218,10 @@
         .app-header {
             width: 100%;
             max-width: 520px;
-            padding: 14px 20px;
-            display: flex;
+            padding: 12px 16px;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
             align-items: center;
-            justify-content: space-between;
             background-color: var(--bg-card);
             border-bottom: 1px solid var(--border-color);
             position: sticky;
@@ -233,9 +233,8 @@
         .header-logo-wrap {
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 10px;
-            text-decoration: none;
-            color: var(--text-primary);
         }
 
         .header-logo {
@@ -380,30 +379,23 @@
         .hardware-photo-container {
             position: relative;
             width: 100%;
-            height: 190px;
             overflow: hidden;
-            background-color: #16171a;
+            background-color: #fff;
         }
 
         .hardware-photo {
             width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: center 30%;
+            height: auto;
             display: block;
-            filter: brightness(0.88);
-            transition: filter 0.3s ease;
+            object-fit: contain;
         }
 
         .hardware-visual-wrap.power-on .hardware-photo {
-            filter: brightness(1);
+            filter: none;
         }
 
         .hardware-photo-overlay {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(180deg, rgba(32,34,37,0.1) 0%, rgba(43,45,49,0.85) 100%);
-            pointer-events: none;
+            display: none;
         }
 
         .hardware-brand-badge {
@@ -585,6 +577,15 @@
             color: var(--text-secondary);
             text-transform: uppercase;
             letter-spacing: 0.5px;
+        }
+
+        .venue-label-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            margin-bottom: 2px;
         }
 
         .demo-tag {
@@ -1262,18 +1263,17 @@
 </head>
 <body>
 
-    <!-- STICKY TOP APP HEADER (Data Studio style) -->
+    <!-- STICKY TOP APP HEADER -->
     <header class="app-header">
-        <a href="index.html" class="header-logo-wrap">
+        <div class="header-venue" id="headerVenueLabel">
+            <i class="fas fa-location-dot" style="color:var(--brand-red);"></i>
+            <span id="venueNameTop">Lauttasaari HQ</span>
+        </div>
+        <div class="header-logo-wrap">
             <img src="subsoccer_logo.svg" alt="Subsoccer" class="header-logo">
-            <span class="arcade-pill">Arcade</span>
-        </a>
-        <div style="display: flex; align-items: center; gap: 8px;">
-            <div class="header-venue" id="headerVenueLabel">
-                <i class="fas fa-location-dot" style="color:var(--brand-red);"></i>
-                <span id="venueNameTop">Mall of Tripla</span>
-            </div>
-            <button class="staff-header-btn" id="btnOpenStaffModal" onclick="openStaffModal()" title="Henkilökunnan moderaattoritila" type="button">
+        </div>
+        <div style="display: flex; justify-content: flex-end;">
+            <button class="staff-header-btn" id="btnOpenStaffModal" onclick="openStaffModal()" title="Staff access" type="button">
                 <i class="fas fa-shield-halved"></i>
                 <span id="staffHeaderLabel">Staff</span>
             </button>
@@ -1283,48 +1283,11 @@
     <!-- MOBILE VIEWPORT CONTAINER -->
     <main class="mobile-container">
 
-        <!-- TABLE IDENTIFICATION CARD -->
-        <div class="table-card">
-            <div class="table-info">
-                <span class="table-label">Active Table</span>
-                <div class="table-title" id="tableTitle">Subsoccer Arcade #1</div>
-                <div class="table-location" id="tableLocation">
-                    <i class="fas fa-map-pin" style="color:var(--brand-red); font-size:0.75rem;"></i>
-                    <span id="tableLocationText">Mall of Tripla, Helsinki</span>
-                </div>
-            </div>
-            <div class="status-badge available" id="statusBadge">
-                <span class="status-dot"></span>
-                <span id="statusBadgeText">Ready</span>
-            </div>
-        </div>
-
-        <!-- AUTHENTIC HARDWARE CARD (REAL PRODUCT PHOTO, NO AI GRAPHICS) -->
-        <div class="hardware-visual-wrap" id="hardwareVisual">
-            <div class="hardware-photo-container">
-                <img src="arcade-2/5-Screen.jpg" alt="Subsoccer Arcade Hardware" class="hardware-photo">
-                <div class="hardware-photo-overlay"></div>
-                <div class="hardware-brand-badge">
-                    <i class="fas fa-microchip"></i> Subsoccer Pulse 1.0
-                </div>
-            </div>
-
-            <div class="hardware-telemetry-bar">
-                <div class="relay-pill" id="relayPill">
-                    <span class="power-indicator-dot"></span>
-                    <span id="relayStatusText">POWER STANDBY</span>
-                </div>
-                <div class="hardware-specs-chip">
-                    <i class="fas fa-shield-halved" style="color:var(--accent-blue);"></i> NETIO ZVS Auto-Off
-                </div>
-            </div>
-        </div>
-
-        <!-- ACTIVE SESSION RUNNING DISPLAY (Data Studio KPI Style) -->
+        <!-- ACTIVE SESSION RUNNING DISPLAY -->
         <div class="active-session-panel" id="activeSessionPanel">
-            <div class="timer-header">Remaining Play Time (Demo: 1s = 1 min)</div>
+            <div class="timer-header">Remaining Play Time</div>
             <div class="timer-digits" id="timerDigits">15s</div>
-            
+
             <div class="progress-bar-bg">
                 <div class="progress-bar-fill" id="progressBarFill"></div>
             </div>
@@ -1333,7 +1296,7 @@
                 <i class="fas fa-circle-check player-action-icon"></i>
                 <div class="player-action-text">
                     <strong>TABLE POWER IS ACTIVE!</strong>
-                    Press the physical start button on the Subsoccer Arcade table to play.
+                    Press the physical start button on the Subsoccer Arcade table to begin.
                 </div>
             </div>
         </div>
@@ -1343,9 +1306,9 @@
             <div class="panel-icon-wrap starting">
                 <i class="fas fa-circle-notch fa-spin"></i>
             </div>
-            <div class="panel-title" id="startingTitle">Maksu hyväksytty!</div>
-            <div class="panel-desc" id="startingDesc">Odotetaan pöydän ja valojen käynnistystä (NETIO)...</div>
-            <div class="panel-status-tag">Varmistetaan laiteyhteys</div>
+            <div class="panel-title" id="startingTitle">Payment Confirmed!</div>
+            <div class="panel-desc" id="startingDesc">Activating table power and lights…</div>
+            <div class="panel-status-tag">Connecting to hardware</div>
         </div>
 
         <!-- EXPIRED SESSION STATUS PANEL -->
@@ -1353,11 +1316,11 @@
             <div class="panel-icon-wrap expired">
                 <i class="fas fa-flag-checkered"></i>
             </div>
-            <div class="panel-title">Peliaika päättynyt</div>
-            <div class="panel-desc">Kiitos pelistä! Haluatko aloittaa uuden pelin?</div>
+            <div class="panel-title">Session Ended</div>
+            <div class="panel-desc">Thanks for playing! Want another round?</div>
             <button class="btn-primary-action" onclick="resetToAvailable()" type="button" style="margin-top: 10px;">
                 <i class="fas fa-rotate-right"></i>
-                <span>PELAA UUDELLEEN</span>
+                <span>PLAY AGAIN</span>
             </button>
         </div>
 
@@ -1366,52 +1329,60 @@
             <div class="panel-icon-wrap refunded">
                 <i class="fas fa-triangle-exclamation"></i>
             </div>
-            <div class="panel-title">Käynnistys epäonnistui</div>
-            <div class="panel-desc" id="refundedDesc">Pöytää ei saatu käynnistettyä. Maksusi palautetaan automaattisesti pankkitilillesi/kortillesi.</div>
-            <div class="panel-status-tag" style="background: rgba(242, 139, 130, 0.15); color: var(--accent-red); border-color: rgba(242, 139, 130, 0.3);">Hyvitys rekisteröity</div>
+            <div class="panel-title">Activation Failed</div>
+            <div class="panel-desc" id="refundedDesc">Could not activate the table. Your payment will be refunded automatically.</div>
+            <div class="panel-status-tag" style="background: rgba(242, 139, 130, 0.15); color: var(--accent-red); border-color: rgba(242, 139, 130, 0.3);">Refund registered</div>
             <button class="btn-secondary-action" onclick="resetToAvailable()" type="button" style="margin-top: 10px;">
                 <i class="fas fa-arrow-left"></i>
-                <span>Palaa alkuun</span>
+                <span>Back</span>
             </button>
         </div>
 
         <!-- ERROR NOTICE BANNER -->
         <div class="arcade-error-notice" id="arcadeErrorNotice" style="display:none;">
             <i class="fas fa-circle-exclamation" style="font-size:1.1rem; flex-shrink:0;"></i>
-            <span id="arcadeErrorText">Yhteys pöytään epäonnistui.</span>
+            <span id="arcadeErrorText">Connection to table failed.</span>
         </div>
 
-        <!-- TIME PACKAGE SELECTOR (USE CASE 1: POWER LEASE) -->
+        <!-- HARDWARE IMAGE -->
+        <div class="hardware-visual-wrap" id="hardwareVisual">
+            <div class="hardware-photo-container">
+                <img src="arcade-hero.jpg" alt="Subsoccer Arcade" class="hardware-photo">
+                <div class="hardware-photo-overlay"></div>
+            </div>
+        </div>
+
+        <!-- TIME PACKAGE SELECTOR -->
         <div class="package-section" id="packageSection">
             <div class="section-headline">
-                <span>Valitse peliaika</span>
+                <span>Select Play Time</span>
             </div>
 
             <div class="slots-grid">
                 <button class="slot-btn" id="slot-test30s" onclick="selectSlot('test30s')" type="button" style="display:none; border-color:rgba(251,188,4,0.45); background:rgba(251,188,4,0.08);">
-                    <span class="slot-popular-badge" style="background:var(--accent-yellow); color:#1a1a1a;">Pikatesti</span>
+                    <span class="slot-popular-badge" style="background:var(--accent-yellow); color:#1a1a1a;">Quick Test</span>
                     <span class="slot-time" style="color:var(--accent-yellow);">30 s</span>
-                    <span class="slot-price" style="color:#ffd666;">Maksuton</span>
-                    <span class="slot-desc" style="color:#ffd666;">Testi 30 s</span>
+                    <span class="slot-price" style="color:#ffd666;">Free</span>
+                    <span class="slot-desc" style="color:#ffd666;">Hardware test</span>
                 </button>
 
-                <button class="slot-btn selected" id="slot-5" onclick="selectSlot(5)" type="button">
+                <button class="slot-btn" id="slot-5" onclick="selectSlot(5)" type="button">
                     <span class="slot-time">5 min</span>
                     <span class="slot-price">2,50 €</span>
-                    <span class="slot-desc">Nopea matsi</span>
+                    <span class="slot-desc">Quick match</span>
                 </button>
 
-                <button class="slot-btn" id="slot-10" onclick="selectSlot(10)" type="button">
-                    <span class="slot-popular-badge">Suosittu</span>
+                <button class="slot-btn selected" id="slot-10" onclick="selectSlot(10)" type="button">
+                    <span class="slot-popular-badge">Popular</span>
                     <span class="slot-time">10 min</span>
                     <span class="slot-price">4,50 €</span>
-                    <span class="slot-desc">Turnaus</span>
+                    <span class="slot-desc">Tournament</span>
                 </button>
 
                 <button class="slot-btn" id="slot-20" onclick="selectSlot(20)" type="button">
                     <span class="slot-time">20 min</span>
                     <span class="slot-price">8,00 €</span>
-                    <span class="slot-desc">Pitkä sessio</span>
+                    <span class="slot-desc">Long session</span>
                 </button>
             </div>
         </div>
@@ -1420,55 +1391,34 @@
         <div class="cta-container">
             <button class="btn-primary-action" id="btnActivatePlay" onclick="activateTablePower()" type="button">
                 <i class="fas fa-bolt"></i>
-                <span id="btnActivateLabel">MAKSA 15 MIN · 5,00 €</span>
+                <span id="btnActivateLabel">Pay &amp; Play · 4,50 €</span>
             </button>
-            <p class="cta-note" id="ctaNote">
-                Siirtyy turvalliseen Stripe-testimaksuun. Pöytä kytkeytyy heti maksun jälkeen.
-            </p>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 10px; opacity: 0.55; font-size: 0.72rem; color: var(--text-secondary);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="38" height="16" viewBox="0 0 60 25" fill="currentColor" aria-label="Stripe"><path d="M59.64 14.28h-8.06c.19 1.93 1.6 2.55 3.2 2.55 1.64 0 2.96-.37 4.05-.95v3.32a10.16 10.16 0 01-4.56 1c-4.01 0-6.83-2.5-6.83-7.48 0-4.19 2.39-7.52 6.3-7.52 3.92 0 5.96 3.28 5.96 7.5 0 .4-.04 1.26-.06 1.58zm-5.92-5.62c-1.03 0-2.17.73-2.17 2.58h4.25c0-1.85-1.07-2.58-2.08-2.58zM40.95 20.3c-1.44 0-2.32-.6-2.9-1.04l-.02 4.63-4.12.87V5.57h3.76l.08 1.02a4.7 4.7 0 013.23-1.29c2.9 0 5.62 2.6 5.62 7.4 0 5.23-2.7 7.6-5.65 7.6zM40 8.95c-.95 0-1.54.34-1.97.81l.02 6.12c.4.44.98.71 1.95.71 1.52 0 2.54-1.65 2.54-3.81 0-2.14-1.04-3.83-2.54-3.83zM28.24 5.57h4.13v14.44h-4.13V5.57zm0-4.7L32.37 0v3.36l-4.13.88V.87zm-4.32 9.35v9.79H19.8V5.57h3.7l.12 1.22c1-1.77 2.9-1.44 3.44-1.25v3.79c-.53-.19-2.7-.41-3.14 1.09zM14.28 2.6l-3.8.82-.01 12.88c0 2.76 1.07 4.54 4.1 4.54.96 0 2.17-.17 2.76-.4v-3.31c-.51.2-3.06.88-3.06-1.29V9.5h3.06V5.57h-3.06L14.28 2.6zM5.69 13.52c0 1.43.72 1.96 1.84 1.96.75 0 1.46-.2 2.21-.54v3.37a7.7 7.7 0 01-3.13.62C3.37 18.93 1.5 17.4 1.5 13.73V5.57H0V2.18l1.5-.32V-.01L5.69.86v1.31l2.95-.62v3.4l-2.95.62v7.95z"/></svg>
+                <span>Powered by Stripe</span>
+            </div>
         </div>
 
-        <!-- LOCAL HARDWARE TEST CONTROLS (TESTI 30 S) -->
+        <!-- LOCAL HARDWARE TEST CONTROLS (30 S) -->
         <div class="test-controls-card" id="testModeSection" style="display: none;">
             <div class="test-controls-header">
                 <span class="test-badge">
-                    <i class="fas fa-flask"></i> Paikallinen testitila
+                    <i class="fas fa-flask"></i> Local Test Mode
                 </span>
                 <span class="test-device-label" id="testDeviceLabel">NETIO PowerBOX 3PF · Output 1</span>
             </div>
             <p class="test-controls-desc">
-                Käynnistää 30 sekunnin pikatestin oikealla NETIO-laitteella (Action: 3, Delay: 30000). Rele katkaisee virran itsenäisesti. Pöytä vapautuu 4 s turvamarginaalin ja fyysisen OFF-varmistuksen jälkeen.
+                Runs a 30-second hardware test on the real NETIO device (Action: 3, Delay: 30000). Relay cuts power automatically. Table is released after a 4 s safety margin and physical OFF confirmation.
             </p>
             <button class="btn-test-30s" id="btnTest30s" onclick="activate30sTest()" type="button">
                 <i class="fas fa-stopwatch"></i>
-                <span id="btnTest30sLabel">Testi 30 s</span>
+                <span id="btnTest30sLabel">Test 30 s</span>
             </button>
-        </div>
-
-        <!-- HOW IT WORKS (Data Studio Card) -->
-        <div class="how-it-works-box">
-            <div class="how-title">
-                <i class="fas fa-circle-info" style="color:var(--accent-blue);"></i>
-                How Subsoccer Arcade Works
-            </div>
-            <div class="how-steps">
-                <div class="how-step">
-                    <span class="step-num">1</span>
-                    <span>Tap <b>Activate</b> to turn table power and LED illumination on.</span>
-                </div>
-                <div class="how-step">
-                    <span class="step-num">2</span>
-                    <span>Start games and track goals directly with the table's physical buttons.</span>
-                </div>
-                <div class="how-step">
-                    <span class="step-num">3</span>
-                    <span>Play as many matches as you like until the time rental expires.</span>
-                </div>
-            </div>
         </div>
 
     </main>
 
-    <!-- FOOTER WITH ADMIN & DEMO TOOLS -->
+
     <footer class="app-footer">
         <div class="footer-brand">
             Subsoccer Arcade System · Official Venue Hardware Access
@@ -1484,7 +1434,7 @@
                 <span style="font-size:0.7rem; color:var(--text-secondary);">Phase A Prototype</span>
             </div>
             <select class="admin-select" id="adminTableSelect" onchange="switchTable(this.value)">
-                <option value="demo-pulse-01">Subsoccer Arcade #1 (Mall of Tripla, Helsinki · Ready)</option>
+                <option value="demo-pulse-01">Subsoccer Arcade #1 (Lauttasaari HQ, Helsinki · Ready)</option>
                 <option value="demo-arcade-02">Subsoccer Arcade #2 (Lauttasaari HQ, Helsinki · Ready)</option>
                 <option value="demo-locked-03">Subsoccer Arcade #3 (Maintenance Lab · Locked)</option>
             </select>
@@ -1505,9 +1455,9 @@
             <div class="staff-modal-header">
                 <div class="staff-modal-title">
                     <i class="fas fa-shield-halved" style="color: var(--accent-blue);"></i>
-                    <span>Henkilökunta / Moderaattoritila</span>
+                    <span>Staff / Moderator Panel</span>
                 </div>
-                <button class="staff-modal-close" onclick="closeStaffModal()" type="button" aria-label="Sulje">
+                <button class="staff-modal-close" onclick="closeStaffModal()" type="button" aria-label="Close">
                     <i class="fas fa-xmark"></i>
                 </button>
             </div>
@@ -1515,18 +1465,18 @@
             <!-- 1. LOGIN FORM (WHEN NOT LOGGED IN) -->
             <div id="staffLoginForm" style="display: block;">
                 <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 16px;">
-                    Kirjaudu sisään toimipaikan PIN-koodilla hallinnoidaksesi tämän toimipaikan pelipöytiä.
+                    Sign in with the venue PIN code to manage this venue's game tables.
                 </p>
                 <div class="staff-form-group">
-                    <label class="staff-form-label" for="staffPin">Toimipaikan PIN-koodi</label>
+                    <label class="staff-form-label" for="staffPin">Venue PIN Code</label>
                     <input class="staff-input" id="staffPin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="••••" autocomplete="one-time-code">
                 </div>
                 <div id="staffLoginError" style="display: none; color: var(--accent-red); font-size: 0.8rem; margin-bottom: 10px;"></div>
                 <button class="staff-login-btn" id="btnStaffSubmitLogin" onclick="loginStaff()" type="button">
-                    <i class="fas fa-sign-in-alt" style="margin-right: 6px;"></i> Kirjaudu PIN-koodilla
+                    <i class="fas fa-sign-in-alt" style="margin-right: 6px;"></i> Sign in with PIN
                 </button>
                 <button class="staff-quick-btn" id="btnStaffQuickLogin" onclick="quickLoginStaff()" type="button">
-                    <i class="fas fa-flask" style="margin-right: 6px;"></i> Pika-kirjautuminen (Testitila)
+                    <i class="fas fa-flask" style="margin-right: 6px;"></i> Quick login (Test mode)
                 </button>
             </div>
 
@@ -1534,50 +1484,44 @@
             <div id="staffDashboard" style="display: none;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; background: rgba(255, 255, 255, 0.04); padding: 10px 14px; border-radius: 8px;">
                     <div>
-                        <div style="font-size: 0.75rem; color: var(--text-secondary);">Kirjautunut käyttäjä</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary);">Logged in as</div>
                         <div style="font-weight: 600; font-size: 0.9rem;" id="staffUserEmail">staff@subsoccer.com</div>
                     </div>
                     <span class="staff-badge badge-green" id="staffUserRole">Staff</span>
                 </div>
 
-                <!-- CRITICAL SAFETY NOTICE -->
-                <div class="staff-notice-banner">
-                    <i class="fas fa-triangle-exclamation" style="margin-right: 6px;"></i>
-                    <strong>TURVALLISUUSOHJE:</strong> Käynnissä olevaa Short ON -peliä ei voi katkaista ohjelmallisesti (laite suojaa relettä). Hätätilanteessa irrota laitteen virtajohto fyysisesti seinästä!
-                </div>
-
                 <!-- PENDING MAINTENANCE ALERT (IF APPLICABLE) -->
                 <div id="staffPendingAlert" style="display: none; background: rgba(253, 226, 147, 0.15); border: 1px solid rgba(253, 226, 147, 0.4); color: var(--accent-yellow); padding: 10px; border-radius: 8px; font-size: 0.82rem; margin-bottom: 14px;">
                     <i class="fas fa-clock" style="margin-right: 6px;"></i>
-                    <strong>Huoltotila odottaa:</strong> Pöytä lukittuu huoltotilaan heti nykyisen pelijakson päätyttyä.
+                    <strong>Maintenance pending:</strong> Table will lock after the current session ends.
                 </div>
 
                 <!-- TELEMETRY -->
                 <div style="margin-bottom: 20px;">
-                    <div style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 6px; letter-spacing: 0.5px;">Pöydän laitetilat</div>
+                    <div style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 6px; letter-spacing: 0.5px;">Table Hardware Status</div>
                     <div class="staff-telemetry-row">
-                        <span>Pöytätunnus</span>
+                        <span>Table ID</span>
                         <code id="staffTableId" style="color: var(--accent-blue);">demo-pulse-01</code>
                     </div>
                     <div class="staff-telemetry-row">
-                        <span>Tila</span>
+                        <span>Status</span>
                         <span class="staff-badge" id="staffTableStateBadge">Available</span>
                     </div>
                     <div class="staff-telemetry-row">
-                        <span>Lähtö 1 (Pulse Pelipöytä)</span>
-                        <span id="staffOutlet1Status" style="font-weight: 500;">Pois päältä (Valmiustila)</span>
+                        <span>Output 1 (Game Table)</span>
+                        <span id="staffOutlet1Status" style="font-weight: 500;">OFF (Standby)</span>
                     </div>
                     <div class="staff-telemetry-row" style="flex-direction: column; align-items: stretch; gap: 6px; padding: 10px 0; border-bottom: 1px solid var(--border-color);">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span>Lähtö 2 (Opastusnäyttö)</span>
-                            <span id="staffOutlet2Status" style="font-weight: 600; font-size: 0.85rem; color: var(--accent-green);">PÄÄLLÄ</span>
+                            <span>Output 2 (Guide Display)</span>
+                            <span id="staffOutlet2Status" style="font-weight: 600; font-size: 0.85rem; color: var(--accent-green);">ON</span>
                         </div>
                         <div style="display: flex; gap: 6px; margin-top: 4px;">
                             <button type="button" class="staff-quick-btn" onclick="setAuxOutlet('display', 'manual_on', 60)" style="flex: 1; padding: 6px 8px; font-size: 0.75rem;">
-                                <i class="fas fa-power-off"></i> Pakota ON
+                                <i class="fas fa-power-off"></i> Force ON
                             </button>
                             <button type="button" class="staff-quick-btn" onclick="setAuxOutlet('display', 'manual_off', 60)" style="flex: 1; padding: 6px 8px; font-size: 0.75rem;">
-                                <i class="fas fa-moon"></i> Pakota OFF
+                                <i class="fas fa-moon"></i> Force OFF
                             </button>
                             <button type="button" class="staff-quick-btn" onclick="setAuxOutlet('display', 'auto')" style="flex: 1; padding: 6px 8px; font-size: 0.75rem; border-color: var(--accent-blue); color: var(--accent-blue);">
                                 <i class="fas fa-rotate"></i> Auto
@@ -1586,15 +1530,15 @@
                     </div>
                     <div class="staff-telemetry-row" style="flex-direction: column; align-items: stretch; gap: 6px; padding: 10px 0;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span>Lähtö 3 (Huomiovalot)</span>
-                            <span id="staffOutlet3Status" style="font-weight: 600; font-size: 0.85rem; color: var(--accent-green);">PÄÄLLÄ</span>
+                            <span>Output 3 (Attract Lights)</span>
+                            <span id="staffOutlet3Status" style="font-weight: 600; font-size: 0.85rem; color: var(--accent-green);">ON</span>
                         </div>
                         <div style="display: flex; gap: 6px; margin-top: 4px;">
                             <button type="button" class="staff-quick-btn" onclick="setAuxOutlet('lights', 'manual_on', 30)" style="flex: 1; padding: 6px 8px; font-size: 0.75rem;">
-                                <i class="fas fa-lightbulb"></i> Sytytä (30m)
+                                <i class="fas fa-lightbulb"></i> Turn On (30m)
                             </button>
                             <button type="button" class="staff-quick-btn" onclick="setAuxOutlet('lights', 'manual_off', 30)" style="flex: 1; padding: 6px 8px; font-size: 0.75rem;">
-                                <i class="fas fa-eye-slash"></i> Sammuta (30m)
+                                <i class="fas fa-eye-slash"></i> Turn Off (30m)
                             </button>
                             <button type="button" class="staff-quick-btn" onclick="setAuxOutlet('lights', 'auto')" style="flex: 1; padding: 6px 8px; font-size: 0.75rem; border-color: var(--accent-blue); color: var(--accent-blue);">
                                 <i class="fas fa-rotate"></i> Auto
@@ -1606,13 +1550,13 @@
                 <!-- MODERATOR ACTIONS -->
                 <div style="display: flex; flex-direction: column; gap: 10px;">
                     <button class="staff-login-btn" id="btnToggleMaintenance" onclick="toggleMaintenance()" type="button" style="background: var(--bg-card-inner); border: 1px solid var(--border-color); color: var(--text-primary);">
-                        <i class="fas fa-wrench" style="margin-right: 6px;"></i> <span id="btnMaintenanceLabel">Aseta huoltotila</span>
+                        <i class="fas fa-wrench" style="margin-right: 6px;"></i> <span id="btnMaintenanceLabel">Set maintenance mode</span>
                     </button>
                     <button class="staff-login-btn" id="btnGrantFreePlay" onclick="grantModeratorFreePlay()" type="button" style="background: #2563EB;">
-                        <i class="fas fa-gift" style="margin-right: 6px;"></i> Myönnä 5 min ilmaispeli
+                        <i class="fas fa-gift" style="margin-right: 6px;"></i> Grant 5 min free play
                     </button>
                     <button class="staff-quick-btn" onclick="logoutStaff()" type="button" style="color: var(--text-secondary); border-color: var(--border-color); margin-top: 10px;">
-                        <i class="fas fa-sign-out-alt" style="margin-right: 6px;"></i> Kirjaudu ulos
+                        <i class="fas fa-sign-out-alt" style="margin-right: 6px;"></i> Sign out
                     </button>
                 </div>
             </div>
@@ -1625,9 +1569,9 @@
             <div class="stripe-modal-header">
                 <div class="stripe-modal-title">
                     <i class="fas fa-credit-card" style="color: var(--accent-blue);"></i>
-                    <span>Turvallinen testimaksu</span>
+                    <span>Secure Payment</span>
                 </div>
-                <button class="stripe-modal-close" onclick="closeStripeCheckout()" type="button" aria-label="Sulje">
+                <button class="stripe-modal-close" onclick="closeStripeCheckout()" type="button" aria-label="Close">
                     <i class="fas fa-xmark"></i>
                 </button>
             </div>
@@ -1638,7 +1582,7 @@
                     <span class="summary-value" id="summaryDuration">15 min</span>
                 </div>
                 <div class="order-summary-total">
-                    <span>Yhteensä</span>
+                    <span>Total</span>
                     <span class="total-amount" id="summaryAmount">5,00 €</span>
                 </div>
             </div>
@@ -1647,14 +1591,14 @@
             <div class="test-card-callout">
                 <div class="test-card-header">
                     <i class="fas fa-flask" style="color: var(--accent-yellow);"></i>
-                    <span>Stripe Testikortti</span>
+                    <span>Stripe Test Card</span>
                 </div>
                 <div class="test-card-details">
                     <code id="testCardNumber">4242 4242 4242 4242</code>
                     <span class="test-card-meta">12/28 · 123</span>
                     <button class="btn-copy-card" id="btnCopyCard" onclick="copyTestCard()" type="button">
                         <i class="fas fa-copy"></i>
-                        <span id="copyCardLabel">Kopioi</span>
+                        <span id="copyCardLabel">Copy</span>
                     </button>
                 </div>
             </div>
@@ -1670,12 +1614,12 @@
             <!-- Confirm Button -->
             <button class="btn-primary-action" id="btnConfirmStripePayment" onclick="handleConfirmPayment()" type="button">
                 <i class="fas fa-lock"></i>
-                <span id="btnConfirmPaymentLabel">MAKSA 5,00 €</span>
+                <span id="btnConfirmPaymentLabel">PAY 5,00 €</span>
             </button>
 
             <div class="stripe-secure-badge">
                 <i class="fas fa-shield-halved"></i>
-                <span>Salattu Stripe-testiyhteys · Ei oikeaa veloitusta</span>
+                <span>Encrypted Stripe connection · Test mode — no real charge</span>
             </div>
         </div>
     </div>
@@ -1686,7 +1630,7 @@
             'demo-pulse-01': {
                 id: 'demo-pulse-01',
                 name: 'Subsoccer Arcade #1',
-                venue: 'Mall of Tripla',
+                venue: 'Lauttasaari HQ',
                 city: 'Helsinki',
                 isEnabled: true,
                 lockState: 'available'
@@ -1718,7 +1662,7 @@
 
         let currentState = 'AVAILABLE'; // 'AVAILABLE', 'REQUESTING', 'STARTING', 'ACTIVE', 'COOLDOWN', 'LOCKED'
         let currentTableId = 'demo-pulse-01';
-        let selectedMinutes = 5;
+        let selectedMinutes = 10;
         let simulatedSeconds = 5; // prototype simulation fallback
         let timeRemaining = 0;
         let countdownTimerId = null;
@@ -1759,8 +1703,13 @@
                 if (adminDrawer) adminDrawer.style.display = 'none';
             }
 
-            // Initial view: set ready state with 5 min selected
-            selectSlot(5);
+            // Check for ?staff=true to open staff login modal (PIN is never accepted via URL)
+            if (queryParams.get('staff') === 'true') {
+                openStaffModal();
+            }
+
+            // Initial view: set ready state with 10 min selected
+            selectSlot(10);
 
             // Sync with backend on startup
             syncStatusWithBackend();
@@ -1809,29 +1758,37 @@
                 }
 
                 if (res.status === 404) {
-                    setLocked('Tuntematon pöytätunnus. Pöytää ei löydy järjestelmästä.');
-                    showErrorNotice('Tuntematon pöytätunnus. Tarkista pöydän QR-koodi.');
+                    setLocked('Unknown table ID. Table not found in system.');
+                    showErrorNotice('Unknown table ID. Please check the QR code.');
                     return;
                 }
 
                 if (res.status === 423 || data.state === 'maintenance_locked' || data.state === 'error_locked') {
-                    setLocked(data.state === 'error_locked' ? 'Pöytä on lukittu laitehäiriön vuoksi.' : 'Pöytä on tilapäisesti pois käytöstä huollon vuoksi.');
+                    let lockMsg = 'Table temporarily out of service.';
+                    if (data.state === 'error_locked' || data.orderStatus === 'hardware_uncertain') {
+                        lockMsg = 'Table locked — hardware confirmation pending.';
+                    }
+                    setLocked(lockMsg);
                     return;
                 }
 
                 if (data.state === 'pending_payment') {
-                    showErrorNotice('Pöytä on toisen pelaajan maksamisvarauksessa. Odota hetki.');
+                    if (!orderPollingTimerId) {
+                        showErrorNotice('Table is reserved for another player\'s payment. Please wait.');
+                    }
                     return;
                 }
 
                 if (data.state === 'active' && data.expiresAt) {
                     const remaining = Math.max(0, Math.round((new Date(data.expiresAt).getTime() - Date.now()) / 1000));
                     if (remaining > 0) {
+                        hideErrorNotice();
                         startActivePlay(remaining, data.expiresAt);
                     } else {
                         setAvailable();
                     }
                 } else if (data.state === 'available' && (currentState === 'LOCKED' || currentState === 'COOLDOWN')) {
+                    hideErrorNotice();
                     setAvailable();
                 }
             } catch (err) {
@@ -1843,7 +1800,17 @@
             const box = document.getElementById('arcadeErrorNotice');
             const text = document.getElementById('arcadeErrorText');
             if (box && text) {
-                text.textContent = msg;
+                let cleanMsg = msg || '';
+                if (typeof cleanMsg === 'string') {
+                    if (cleanMsg.includes('parhaillaan varattu tai käytössä') || cleanMsg.includes('käynnissä oleva')) {
+                        cleanMsg = 'Table is currently reserved or in use. Please wait a moment.';
+                    } else if (cleanMsg.includes('toisen pelaajan varattavana')) {
+                        cleanMsg = 'Table is temporarily reserved for another player. Please wait.';
+                    } else if (cleanMsg.includes('poissa käytöstä') || cleanMsg.includes('huoltotilaan')) {
+                        cleanMsg = 'Table is temporarily out of service.';
+                    }
+                }
+                text.textContent = cleanMsg;
                 box.style.display = 'flex';
             }
         }
@@ -1874,12 +1841,17 @@
                 lockState: 'available'
             };
 
-            document.getElementById('tableTitle').textContent = table.name;
-            document.getElementById('tableLocationText').textContent = `${table.venue}, ${table.city}`;
-            document.getElementById('venueNameTop').textContent = table.venue;
+            const el = (id) => document.getElementById(id);
+            if (el('tableTitle')) el('tableTitle').textContent = table.name;
+            if (el('tableLocationText')) el('tableLocationText').textContent = `${table.venue}, ${table.city}`;
+            if (el('venueNameTop')) el('venueNameTop').textContent = table.venue;
+            if (el('venueLabelMain')) el('venueLabelMain').textContent = table.venue;
 
             if (!table.isEnabled || table.lockState === 'maintenance_locked' || table.lockState === 'error_locked') {
-                setLocked('Table is temporarily disabled for maintenance.');
+                const initMsg = table.lockState === 'error_locked' 
+                    ? 'Pöytä lukittu – laitteen kuittaus puuttuu' 
+                    : 'Pöytä on tilapäisesti pois käytöstä huollon vuoksi.';
+                setLocked(initMsg);
             } else {
                 setAvailable();
             }
@@ -1887,16 +1859,13 @@
 
         function updateCtaButtonLabel() {
             const label = document.getElementById('btnActivateLabel');
-            const note = document.getElementById('ctaNote');
             if (!label) return;
 
             if (is30sTestSelected) {
-                label.textContent = 'KÄYNNISTÄ TESTI 30 S (NETIO DELAY: 30 000 ms)';
-                if (note) note.textContent = 'Käynnistää 30 sekunnin pikatestin fyysisellä releellä. Rele sammuu itsenäisesti 30 s kuluttua.';
+                label.textContent = 'START HARDWARE TEST · 30 s';
             } else {
                 const pkg = PRICING_CATALOG[selectedMinutes] || PRICING_CATALOG[5];
-                label.textContent = `MAKSA ${pkg.minutes} MIN · ${pkg.priceStr}`;
-                if (note) note.textContent = 'Siirtyy turvalliseen Stripe-testimaksuun. Pöytä kytkeytyy heti maksun jälkeen.';
+                label.textContent = `Pay & Play · ${pkg.priceStr}`;
             }
         }
 
@@ -1996,14 +1965,17 @@
                 orderPollingTimerId = null;
             }
 
-            // Status Badge
+            // Status Badge (removed from customer view, guard safely)
             const badge = document.getElementById('statusBadge');
-            badge.className = 'status-badge available';
-            document.getElementById('statusBadgeText').textContent = 'Ready';
+            if (badge) badge.className = 'status-badge available';
+            const badgeText = document.getElementById('statusBadgeText');
+            if (badgeText) badgeText.textContent = 'Ready';
 
-            // Hardware Visualizer
-            document.getElementById('hardwareVisual').classList.remove('power-on');
-            document.getElementById('relayStatusText').textContent = 'POWER STANDBY';
+            // Hardware Visualizer (removed from customer view, guard safely)
+            const hw = document.getElementById('hardwareVisual');
+            if (hw) hw.classList.remove('power-on');
+            const relay = document.getElementById('relayStatusText');
+            if (relay) relay.textContent = 'POWER STANDBY';
 
             // UI Panels
             document.getElementById('activeSessionPanel').classList.remove('show');
@@ -2038,14 +2010,17 @@
             hideExpiredPanel();
             hideRefundedPanel();
 
-            // Status Badge
+            // Status Badge (removed from customer view, guard safely)
             const badge = document.getElementById('statusBadge');
-            badge.className = 'status-badge locked';
-            document.getElementById('statusBadgeText').textContent = 'Locked';
+            if (badge) badge.className = 'status-badge locked';
+            const badgeText = document.getElementById('statusBadgeText');
+            if (badgeText) badgeText.textContent = 'Locked';
 
-            // Hardware Visualizer
-            document.getElementById('hardwareVisual').classList.remove('power-on');
-            document.getElementById('relayStatusText').textContent = 'LOCKED OUT';
+            // Hardware Visualizer (removed from customer view, guard safely)
+            const hw = document.getElementById('hardwareVisual');
+            if (hw) hw.classList.remove('power-on');
+            const relay = document.getElementById('relayStatusText');
+            if (relay) relay.textContent = 'LOCKED OUT';
 
             // UI Panels
             document.getElementById('activeSessionPanel').classList.remove('show');
@@ -2055,9 +2030,11 @@
 
             // Button
             const btn = document.getElementById('btnActivatePlay');
-            btn.disabled = true;
-            document.getElementById('btnActivateLabel').textContent = 'TABLE OUT OF SERVICE';
-            document.getElementById('ctaNote').textContent = reason;
+            if (btn) btn.disabled = true;
+            const btnLabel = document.getElementById('btnActivateLabel');
+            if (btnLabel) btnLabel.textContent = 'TABLE OUT OF SERVICE';
+            const ctaNote = document.getElementById('ctaNote');
+            if (ctaNote) ctaNote.textContent = reason;
         }
 
         // ─── STRIPE CHECKOUT MODAL LOGIC ───
@@ -2067,10 +2044,10 @@
                 navigator.clipboard.writeText(num).then(() => {
                     const lbl = document.getElementById('copyCardLabel');
                     if (lbl) {
-                        lbl.textContent = 'Kopioitu!';
-                        setTimeout(() => { lbl.textContent = 'Kopioi'; }, 2000);
+                        lbl.textContent = 'Copied!';
+                        setTimeout(() => { lbl.textContent = 'Copy'; }, 2000);
                     }
-                }).catch(() => {});
+                });
             }
         }
 
@@ -2085,11 +2062,11 @@
         }
 
         async function openStripeCheckout(minutes) {
-            const pkg = PRICING_CATALOG[minutes] || PRICING_CATALOG[5];
+            const pkg = PRICING_CATALOG[minutes] || PRICING_CATALOG[10] || PRICING_CATALOG[5];
             const btn = document.getElementById('btnActivatePlay');
             if (btn) {
                 btn.disabled = true;
-                btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> VALMISTELLAAN MAKSUA...`;
+                btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> PREPARING PAYMENT...`;
             }
 
             try {
@@ -2107,13 +2084,13 @@
                 const data = await res.json().catch(() => ({}));
 
                 if (res.status === 409) {
-                    showErrorNotice(data.error || 'Pöytä on parhaillaan varattu tai maksussa toiselle pelaajalle.');
+                    showErrorNotice(data.error || 'Table is currently reserved. Please wait a moment.');
                     setAvailable(true);
                     return;
                 }
 
                 if (!res.ok || !data.success) {
-                    showErrorNotice(data.error || 'Maksun alustus epäonnistui. Yritä uudelleen.');
+                    showErrorNotice(data.error || 'Payment initialization failed. Please try again.');
                     setAvailable(true);
                     return;
                 }
@@ -2128,10 +2105,10 @@
                 const summaryAmt = document.getElementById('summaryAmount');
                 if (summaryAmt) summaryAmt.textContent = pkg.priceStr;
                 const btnLabel = document.getElementById('btnConfirmPaymentLabel');
-                if (btnLabel) btnLabel.textContent = `MAKSA ${pkg.priceStr}`;
+                if (btnLabel) btnLabel.textContent = `PAY ${pkg.priceStr}`;
 
                 if (!window.Stripe) {
-                    showErrorNotice('Stripe.js kirjastoa ei voitu ladata. Tarkista verkkoyhteys.');
+                    showErrorNotice('Could not load Stripe.js library. Please check your network connection.');
                     setAvailable(true);
                     return;
                 }
@@ -2174,7 +2151,7 @@
                 }
             } catch (err) {
                 console.error('[STRIPE CHECKOUT] Error opening checkout:', err);
-                showErrorNotice('Virhe maksutapahtuman luonnissa: ' + err.message);
+                showErrorNotice('Error creating checkout: ' + err.message);
                 setAvailable(true);
             }
         }
@@ -2188,7 +2165,7 @@
 
             if (confirmBtn) {
                 confirmBtn.disabled = true;
-                confirmBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> VAHVISTETAAN MAKSUA...`;
+                confirmBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> CONFIRMING PAYMENT...`;
             }
 
             try {
@@ -2199,13 +2176,13 @@
 
                 if (error) {
                     if (errBox) {
-                        errBox.textContent = error.message || 'Maksun vahvistaminen epäonnistui.';
+                        errBox.textContent = error.message || 'Payment confirmation failed.';
                         errBox.style.display = 'block';
                     }
                     if (confirmBtn) {
                         confirmBtn.disabled = false;
-                        const pkg = PRICING_CATALOG[selectedMinutes] || PRICING_CATALOG[5];
-                        confirmBtn.innerHTML = `<i class="fas fa-lock"></i> <span id="btnConfirmPaymentLabel">MAKSA ${pkg.priceStr}</span>`;
+                        const pkg = PRICING_CATALOG[selectedMinutes] || PRICING_CATALOG[10] || PRICING_CATALOG[5];
+                        confirmBtn.innerHTML = `<i class="fas fa-lock"></i> <span id="btnConfirmPaymentLabel">PAY ${pkg.priceStr}</span>`;
                     }
                     return;
                 }
@@ -2214,7 +2191,7 @@
                 closeStripeCheckout();
 
                 // Show starting status panel
-                showStartingPanel('Maksu hyväksytty!', 'Odotetaan pöydän ja valojen käynnistystä (NETIO)...');
+                showStartingPanel('Payment Confirmed!', 'Activating table power and lights…');
 
                 // Start order polling
                 startOrderPolling(currentOrderId, getClientToken());
@@ -2222,12 +2199,12 @@
             } catch (err) {
                 console.error('[STRIPE] confirmPayment error:', err);
                 if (errBox) {
-                    errBox.textContent = 'Maksun käsittelyssä tapahtui virhe: ' + err.message;
+                    errBox.textContent = 'Payment error: ' + err.message;
                     errBox.style.display = 'block';
                 }
                 if (confirmBtn) {
                     confirmBtn.disabled = false;
-                    confirmBtn.innerHTML = `<i class="fas fa-lock"></i> <span>Yritä uudelleen</span>`;
+                    confirmBtn.innerHTML = `<i class="fas fa-lock"></i> <span>Try again</span>`;
                 }
             }
         }
@@ -2262,8 +2239,8 @@
                             orderPollingTimerId = null;
                             hideStartingPanel();
                             const refundMsg = order.refund_status === 'refund_completed'
-                                ? 'Pöydän käynnistys epäonnistui. Maksusi on palautettu automaattisesti takaisin kortillesi.'
-                                : (order.errorReason || 'Pöydän käynnistys epäonnistui. Maksu palautetaan automaattisesti.');
+                                ? 'Table activation failed. Your payment has been automatically refunded to your card.'
+                                : (order.errorReason || 'Table activation failed. Payment will be refunded automatically.');
                             showRefundedPanel(refundMsg);
                             return;
                         }
@@ -2272,17 +2249,17 @@
                             clearInterval(orderPollingTimerId);
                             orderPollingTimerId = null;
                             hideStartingPanel();
-                            showErrorNotice(order.errorReason || 'Pöydän varaus epäonnistui tai vanhentui.');
+                            showErrorNotice(order.errorReason || 'Table reservation failed or expired.');
                             setAvailable(true);
                             return;
                         }
 
                         if (order.status === 'pending_activation') {
                             const desc = document.getElementById('startingDesc');
-                            if (desc) desc.textContent = 'Maksu vastaanotettu. Käynnistetään NETIO-relettä...';
+                            if (desc) desc.textContent = 'Payment received. Activating NETIO relay…';
                         } else if (order.status === 'pending_gateway_dispatch') {
                             const desc = document.getElementById('startingDesc');
-                            if (desc) desc.textContent = 'Maksu vastaanotettu. Käynnistetään pöytää...';
+                            if (desc) desc.textContent = 'Payment received. Starting table…';
                         }
                     } else if (data.state === 'active' && data.expiresAt) {
                         const remaining = Math.max(0, Math.round((new Date(data.expiresAt).getTime() - Date.now()) / 1000));
@@ -2337,10 +2314,10 @@
             if (testBtn) {
                 testBtn.disabled = true;
                 const testLabel = document.getElementById('btnTest30sLabel');
-                if (testLabel) testLabel.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Käynnistetään 30 s testi...`;
+                if (testLabel) testLabel.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Starting 30 s test…`;
             }
 
-            document.getElementById('ctaNote').textContent = `Käynnistetään 30 s testijakso oikealla NETIO-laitteella (Action: 3, Delay: 30000)...`;
+            console.log('[ARCADE] Running 30 s hardware test on real NETIO device (Action: 3, Delay: 30000)…');
 
             const clientToken = getClientToken();
             const urlParams = new URLSearchParams(window.location.search);
@@ -2425,14 +2402,17 @@
                 orderPollingTimerId = null;
             }
 
-            // Status Badge
+            // Status Badge (removed from customer view, guard safely)
             const badge = document.getElementById('statusBadge');
-            badge.className = 'status-badge active';
-            document.getElementById('statusBadgeText').textContent = 'In Play';
+            if (badge) badge.className = 'status-badge active';
+            const badgeText = document.getElementById('statusBadgeText');
+            if (badgeText) badgeText.textContent = 'In Play';
 
-            // Hardware Visualizer
-            document.getElementById('hardwareVisual').classList.add('power-on');
-            document.getElementById('relayStatusText').textContent = 'POWER ON (PULSE PCB ACTIVE)';
+            // Hardware Visualizer (removed from customer view, guard safely)
+            const hw = document.getElementById('hardwareVisual');
+            if (hw) hw.classList.add('power-on');
+            const relay = document.getElementById('relayStatusText');
+            if (relay) relay.textContent = 'POWER ON (PULSE PCB ACTIVE)';
 
             // Hide Package Selection, Button & Test Section
             document.getElementById('packageSection').style.display = 'none';
@@ -2443,7 +2423,8 @@
             // Show Active Countdown Panel
             const activePanel = document.getElementById('activeSessionPanel');
             activePanel.classList.add('show');
-            document.getElementById('ctaNote').textContent = 'Pöydän virta on aktiivinen. Rele sammuu itsenäisesti kun peliaika päättyy.';
+            const ctaNote = document.getElementById('ctaNote');
+            if (ctaNote) ctaNote.textContent = 'Table is active. Power will cut automatically when time expires.';
 
             updateCountdownDisplay();
 
@@ -2495,17 +2476,21 @@
             resetTimer();
             currentState = 'COOLDOWN';
 
-            // Status Badge
+            // Status Badge (removed from customer view, guard safely)
             const badge = document.getElementById('statusBadge');
-            badge.className = 'status-badge cooldown';
-            document.getElementById('statusBadgeText').textContent = 'Cooldown';
+            if (badge) badge.className = 'status-badge cooldown';
+            const badgeText = document.getElementById('statusBadgeText');
+            if (badgeText) badgeText.textContent = 'Cooldown';
 
-            // Hardware Visualizer cooldown state
-            document.getElementById('hardwareVisual').classList.remove('power-on');
-            document.getElementById('relayStatusText').textContent = 'EXPIRED (COOLDOWN)';
+            // Hardware Visualizer (removed from customer view, guard safely)
+            const hw = document.getElementById('hardwareVisual');
+            if (hw) hw.classList.remove('power-on');
+            const relay = document.getElementById('relayStatusText');
+            if (relay) relay.textContent = 'EXPIRED (COOLDOWN)';
             document.getElementById('timerDigits').textContent = '0s';
             document.getElementById('progressBarFill').style.width = '0%';
-            document.getElementById('ctaNote').textContent = 'Peliaika päättyi. Rele katkaisee virran. Varmistetaan laitteen OFF-tila...';
+            const ctaNoteCooldown = document.getElementById('ctaNote');
+            if (ctaNoteCooldown) ctaNoteCooldown.textContent = 'Session ended. Relay cutting power. Confirming hardware OFF…';
 
             setTimeout(() => {
                 showExpiredPanel();
@@ -2526,14 +2511,14 @@
 
             let token = tokenOverride || sessionStorage.getItem('arcade_admin_token') || '';
             if (!token) {
-                token = prompt('Syötä ylläpidon admin-token hätäkatkaisua varten:');
+                token = prompt('Enter admin token for emergency cut:');
                 if (token) {
                     sessionStorage.setItem('arcade_admin_token', token.trim());
                 }
             }
 
             if (!token) {
-                alert('Hätäkatkaisu peruutettu: Ylläpidon valtuutus puuttuu.');
+                alert('Emergency cut cancelled: Admin authorization missing.');
                 return;
             }
 
@@ -2555,22 +2540,25 @@
                     const data = await res.json().catch(() => ({}));
 
                     if (!res.ok || !data.success) {
-                        alert(`Hätäkatkaisu epäonnistui: ${data.error || 'Palvelinvirhe'}`);
-                        showErrorNotice(`Hätäkatkaisu epäonnistui: ${data.error || 'Yhteysvirhe'}`);
+                        alert(`Emergency cut failed: ${data.error || 'Server error'}`);
+                        showErrorNotice(`Emergency cut failed: ${data.error || 'Connection error'}`);
                         return;
                     }
                 } catch (err) {
-                    alert(`Verkkovirhe hätäkatkaisussa: ${err.message}`);
-                    showErrorNotice(`Verkkovirhe hätäkatkaisussa: ${err.message}`);
+                    alert(`Network error during emergency cut: ${err.message}`);
+                    showErrorNotice(`Network error during emergency cut: ${err.message}`);
                     return;
                 }
             }
 
             resetTimer();
             currentState = 'COOLDOWN';
-            document.getElementById('hardwareVisual').classList.remove('power-on');
-            document.getElementById('relayStatusText').textContent = 'EMERGENCY CUT (OFF)';
-            document.getElementById('ctaNote').textContent = 'Ylläpidon hätäkatkaisu vahvistettu. Virta katkaistu releeltä välittömästi.';
+            const hwCut = document.getElementById('hardwareVisual');
+            if (hwCut) hwCut.classList.remove('power-on');
+            const relayCut = document.getElementById('relayStatusText');
+            if (relayCut) relayCut.textContent = 'EMERGENCY CUT (OFF)';
+            const ctaNoteCut = document.getElementById('ctaNote');
+            if (ctaNoteCut) ctaNoteCut.textContent = 'Emergency cut confirmed. Power removed from relay immediately.';
 
             setTimeout(() => {
                 setAvailable();
@@ -2643,7 +2631,7 @@
                 if (headerBtn) headerBtn.classList.add('logged-in');
 
                 const emailEl = document.getElementById('staffUserEmail');
-                if (emailEl) emailEl.textContent = currentStaffUser.email || currentStaffUser.venueName || 'Toimipaikan henkilökunta';
+                if (emailEl) emailEl.textContent = currentStaffUser.email || currentStaffUser.venueName || 'Venue staff';
                 const roleEl = document.getElementById('staffUserRole');
                 if (roleEl) roleEl.textContent = currentStaffUser.role || 'Staff';
 
@@ -2665,7 +2653,7 @@
 
             if (!pin) {
                 if (errorBox) {
-                    errorBox.textContent = 'Syötä toimipaikan PIN-koodi.';
+                    errorBox.textContent = 'Please enter the venue PIN code.';
                     errorBox.style.display = 'block';
                 }
                 return;
@@ -2727,13 +2715,13 @@
                 checkStaffAuth();
             } catch (err) {
                 if (errorBox) {
-                    errorBox.textContent = err.message || 'Kirjautumisvirhe.';
+                    errorBox.textContent = err.message || 'Sign in error.';
                     errorBox.style.display = 'block';
                 }
             } finally {
                 if (submitBtn) {
                     submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<i class="fas fa-sign-in-alt" style="margin-right: 6px;"></i> Kirjaudu PIN-koodilla';
+                    submitBtn.innerHTML = '<i class="fas fa-sign-in-alt" style="margin-right: 6px;"></i> Sign in with PIN';
                 }
             }
         }
@@ -2744,8 +2732,8 @@
                 id: 'test-mod-01',
                 email: 'staff.demo@subsoccer.com',
                 venueId: 'venue-demo-01',
-                venueName: 'Mall of Tripla Demo Venue',
-                role: 'Staff (Testitila)'
+                venueName: 'Lauttasaari HQ Demo Venue',
+                role: 'Staff (Test mode)'
             };
             sessionStorage.setItem('arcade_staff_session', currentStaffToken);
             sessionStorage.setItem('arcade_staff_user', JSON.stringify(currentStaffUser));
@@ -2763,12 +2751,19 @@
 
         async function toggleMaintenance() {
             if (!currentStaffToken) {
-                alert('Kirjaudu sisään ensin.');
+                alert('Please sign in first.');
                 return;
             }
 
             const btn = document.getElementById('btnToggleMaintenance');
-            const isCurrentlyLocked = (currentState === 'LOCKED' || (window._lastStatusData?.state === 'maintenance_locked'));
+            const isCurrentlyLocked = (
+                currentState === 'LOCKED' || 
+                currentState === 'ERROR_LOCKED' || 
+                window._lastStatusData?.state === 'maintenance_locked' || 
+                window._lastStatusData?.state === 'error_locked' ||
+                window._lastStatusData?.lock_state === 'maintenance_locked' || 
+                window._lastStatusData?.lock_state === 'error_locked'
+            );
             const targetEnable = !isCurrentlyLocked;
 
             if (btn) btn.disabled = true;
@@ -2784,25 +2779,25 @@
                         action: 'set-maintenance',
                         table: currentTableId,
                         enabled: targetEnable,
-                        reason: 'Moderaattorin manuaalinen huoltotilan kytkentä'
+                        reason: 'Moderator manual maintenance toggle'
                     })
                 });
 
                 const data = await res.json().catch(() => ({}));
                 if (!res.ok || !data.success) {
-                    alert(`Huoltotilan muutos epäonnistui: ${data.error || res.statusText}`);
+                    alert(`Maintenance mode change failed: ${data.error || res.statusText}`);
                     return;
                 }
 
                 if (data.isDeferred) {
-                    alert('Peli on käynnissä! Huoltotila on asetettu odottamaan ja astuu voimaan pelin päättyessä.');
+                    alert('Game in progress! Maintenance mode is queued and will activate when the game ends.');
                 } else {
-                    alert(targetEnable ? 'Pöytä on asetettu huoltotilaan välittömästi.' : 'Pöytä on vapautettu huoltotilasta.');
+                    alert(targetEnable ? 'Table placed in maintenance mode immediately.' : 'Table released from maintenance mode.');
                 }
 
                 syncStatusWithBackend();
             } catch (e) {
-                alert(`Verkkovirhe: ${e.message}`);
+                alert(`Network error: ${e.message}`);
             } finally {
                 if (btn) btn.disabled = false;
             }
@@ -2822,7 +2817,7 @@
             const btn = document.getElementById('btnGrantFreePlay');
             if (btn) {
                 btn.disabled = true;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Myönnetään ilmaispeliä...';
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Granting free play…';
             }
 
             try {
@@ -2853,7 +2848,7 @@
             } finally {
                 if (btn) {
                     btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-gift" style="margin-right: 6px;"></i> Myönnä 5 min ilmaispeli';
+                    btn.innerHTML = '<i class="fas fa-gift" style="margin-right: 6px;"></i> Grant 5 min free play';
                 }
             }
         }
@@ -2915,10 +2910,10 @@
             const outlet1Status = document.getElementById('staffOutlet1Status');
             if (outlet1Status) {
                 if (data.state === 'active' || currentState === 'ACTIVE') {
-                    outlet1Status.textContent = 'PÄÄLLÄ (Short ON aktiivinen)';
+                    outlet1Status.textContent = 'ON (Short ON active)';
                     outlet1Status.style.color = 'var(--accent-yellow)';
                 } else {
-                    outlet1Status.textContent = 'Pois päältä (Valmiustila)';
+                    outlet1Status.textContent = 'OFF (Standby)';
                     outlet1Status.style.color = 'var(--text-secondary)';
                 }
             }
@@ -2927,13 +2922,13 @@
             if (outlet2Status) {
                 const d = data.display;
                 if (d) {
-                    let label = d.state === 1 ? 'PÄÄLLÄ' : 'POIS';
-                    if (d.mode && d.mode !== 'auto') label += ` [${d.mode === 'manual_on' ? 'MANUAALI ON' : 'MANUAALI OFF'}]`;
-                    if (d.state === 1 && d.isOnline === false) label += ' (Offline/Käynnistyy)';
+                    let label = d.state === 1 ? 'ON' : 'OFF';
+                    if (d.mode && d.mode !== 'auto') label += ` [${d.mode === 'manual_on' ? 'MANUAL ON' : 'MANUAL OFF'}]`;
+                    if (d.state === 1 && d.isOnline === false) label += ' (Offline/Booting)';
                     outlet2Status.textContent = label;
                     outlet2Status.style.color = d.state === 1 ? (d.isOnline ? 'var(--accent-green)' : 'var(--accent-yellow)') : 'var(--text-secondary)';
                 } else {
-                    outlet2Status.textContent = 'PÄÄLLÄ (Auto)';
+                    outlet2Status.textContent = 'ON (Auto)';
                     outlet2Status.style.color = 'var(--accent-green)';
                 }
             }
@@ -2942,12 +2937,12 @@
             if (outlet3Status) {
                 const l = data.lights;
                 if (l) {
-                    let label = l.state === 1 ? 'PÄÄLLÄ (Houkutusvalo)' : 'POIS PÄÄLTÄ';
-                    if (l.mode && l.mode !== 'auto') label += ` [${l.mode === 'manual_on' ? 'MANUAALI ON' : 'MANUAALI OFF'}]`;
+                    let label = l.state === 1 ? 'ON (Attract)' : 'OFF';
+                    if (l.mode && l.mode !== 'auto') label += ` [${l.mode === 'manual_on' ? 'MANUAL ON' : 'MANUAL OFF'}]`;
                     outlet3Status.textContent = label;
                     outlet3Status.style.color = l.state === 1 ? 'var(--accent-green)' : 'var(--text-secondary)';
                 } else {
-                    outlet3Status.textContent = (data.state === 'available' || currentState === 'AVAILABLE') ? 'PÄÄLLÄ (Auto)' : 'POIS (Auto)';
+                    outlet3Status.textContent = (data.state === 'available' || currentState === 'AVAILABLE') ? 'ON (Auto)' : 'OFF (Auto)';
                     outlet3Status.style.color = (data.state === 'available' || currentState === 'AVAILABLE') ? 'var(--accent-green)' : 'var(--text-secondary)';
                 }
             }
@@ -2955,11 +2950,11 @@
             const maintLabel = document.getElementById('btnMaintenanceLabel');
             if (maintLabel) {
                 if (data.state === 'maintenance_locked' || currentState === 'LOCKED') {
-                    maintLabel.textContent = 'Vapauta huoltotilasta';
+                    maintLabel.textContent = 'Release maintenance lock';
                 } else if (data.state === 'active' || currentState === 'ACTIVE') {
-                    maintLabel.textContent = data.pendingMaintenanceLock ? 'Peruuta odottava huoltotila' : 'Aseta huoltotila (pelin jälkeen)';
+                    maintLabel.textContent = data.pendingMaintenanceLock ? 'Cancel pending maintenance' : 'Set maintenance mode (after game)';
                 } else {
-                    maintLabel.textContent = 'Aseta huoltotila heti';
+                    maintLabel.textContent = 'Set maintenance mode now';
                 }
             }
 

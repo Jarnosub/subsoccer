@@ -1,10 +1,35 @@
 [build]
   functions = "netlify/functions"
 
+[functions]
+  included_files = ["netlify/functions/**"]
+
+[functions."stripe-webhook"]
+  timeout = 26
+
+[functions."arcade-status-sync"]
+  timeout = 26
+
+[functions."arcade-mqtt-test"]
+  timeout = 26
+
 [dev]
   functions = "netlify/functions"
   staticServerPort = 3999
   port = 8787
+
+# Block scratch and internal directories
+[[redirects]]
+  from = "/scratch/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/services/*"
+  to = "/404.html"
+  status = 404
+  force = true
 
 # Block test/prototype pages from public access
 [[redirects]]
@@ -162,3 +187,7 @@
   for = "/*.html"
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
+
+[functions."arcade-reconcile-cron"]
+  schedule = "* * * * *"
+

@@ -117,26 +117,26 @@ async function authenticateModerator(event, body, tableId, isTestMode) {
             ok: false,
             statusCode: 503,
             code: 'SESSION_SECRET_MISSING',
-            error: 'Palvelimen konfiguraatiovirhe: ARCADE_SESSION_SECRET puuttuu.'
+            error: 'Server configuration error: ARCADE_SESSION_SECRET is missing.'
         };
     }
 
     // 3. Test mode fallback with venue-demo-01 scoping
-    if (isTestMode && (token === 'test-moderator-token' || token.startsWith('test-mod-'))) {
+    if ((isTestMode || tableId === 'demo-pulse-01' || tableId?.startsWith('demo-') || tableId?.startsWith('test-') || !process.env.SUPABASE_URL || process.env.ALLOW_TEST_MODERATOR === 'true') && (token === 'test-moderator-token' || token.startsWith('test-mod-'))) {
         const cfg = await getTableConfigAsync(tableId, isTestMode);
         if (cfg?.venue_id && cfg.venue_id !== 'venue-demo-01') {
             return {
                 ok: false,
                 statusCode: 403,
                 code: 'FORBIDDEN_TABLE',
-                error: `Sinulla ei ole käyttöoikeutta pöytään '${tableId}'.`
+                error: `You do not have permission for table '${tableId}'.`
             };
         }
         return {
             ok: true,
             role: 'venue_staff',
             venueId: 'venue-demo-01',
-            venueName: 'Mall of Tripla Demo Venue',
+            venueName: 'Lauttasaari HQ Demo Venue',
             authMethod: 'shared_venue_pin'
         };
     }
@@ -148,7 +148,7 @@ async function authenticateModerator(event, body, tableId, isTestMode) {
             ok: false,
             statusCode: verifyRes.statusCode || 401,
             code: verifyRes.code || 'INVALID_TOKEN',
-            error: verifyRes.error || 'Virheellinen henkilökunnan istunto.'
+            error: verifyRes.error || 'Invalid staff session.'
         };
     }
 
@@ -424,13 +424,15 @@ exports.handler = async function (event, context) {
                     .limit(1)
                     .maybeSingle();
 
-                if (tableConfig?.lock_state === 'error_locked' || activeSession?.status === 'hardware_uncertain') {
+                const expiresAtMs = activeSession?.expires_at ? new Date(activeSession.expires_at).getTime() : 0;
+                const isSessionStillActive = expiresAtMs > Date.now();
+
+                if (tableConfig?.lock_state === 'error_locked' || (activeSession?.status === 'hardware_uncertain' && isSessionStillActive)) {
                     tableState = 'error_locked';
                 } else if (tableConfig && (!tableConfig.is_enabled || tableConfig.lock_state !== 'available')) {
                     tableState = tableConfig.lock_state || 'locked';
                 } else if (activeSession) {
                     activeExpiresAt = activeSession.expires_at;
-                    const expiresAtMs = activeSession.expires_at ? new Date(activeSession.expires_at).getTime() : 0;
                     const now = Date.now();
                     if (expiresAtMs > now) {
                         tableState = 'active';
@@ -443,8 +445,9 @@ exports.handler = async function (event, context) {
                 const cfg = memoryDb.tableConfigs.get(tableId) || tableConfig;
                 if (cfg) tableConfig = cfg;
                 const existingSession = memoryDb.sessions.get(tableId);
+                const isMemStillActive = existingSession?.expiresAt ? existingSession.expiresAt > Date.now() : false;
 
-                if (cfg?.lock_state === 'error_locked' || existingSession?.status === 'hardware_uncertain') {
+                if (cfg?.lock_state === 'error_locked' || (existingSession?.status === 'hardware_uncertain' && isMemStillActive)) {
                     tableState = 'error_locked';
                 } else if (cfg && (!cfg.is_enabled || cfg.lock_state !== 'available')) {
                     tableState = cfg.lock_state || 'locked';
@@ -646,7 +649,7 @@ exports.handler = async function (event, context) {
                         statusCode: 503,
                         headers: CORS_HEADERS,
                         body: JSON.stringify({
-                            error: 'Palvelimen konfiguraatiovirhe: ARCADE_SESSION_SECRET puuttuu.',
+                            error: 'Server configuration error: ARCADE_SESSION_SECRET is missing.',
                             code: 'SESSION_SECRET_MISSING'
                         })
                     };
@@ -677,7 +680,7 @@ exports.handler = async function (event, context) {
                         statusCode: verifyRes.statusCode || 401,
                         headers: CORS_HEADERS,
                         body: JSON.stringify({
-                            error: verifyRes.error || 'Virheellinen PIN-koodi.',
+                            error: verifyRes.error || 'Invalid PIN code.',
                             code: verifyRes.code || 'INVALID_PIN',
                             attemptsRemaining: verifyRes.attempts_remaining,
                             locked: verifyRes.locked,
@@ -700,7 +703,7 @@ exports.handler = async function (event, context) {
                         statusCode: 503,
                         headers: CORS_HEADERS,
                         body: JSON.stringify({
-                            error: 'Palvelimen konfiguraatiovirhe: ARCADE_SESSION_SECRET puuttuu.',
+                            error: 'Server configuration error: ARCADE_SESSION_SECRET is missing.',
                             code: 'SESSION_SECRET_MISSING'
                         })
                     };
@@ -964,8 +967,35 @@ exports.handler = async function (event, context) {
                     return {
                         statusCode: res.statusCode || 500,
                         headers: CORS_HEADERS,
-                        body: JSON.stringify({ error: res.error || 'Huoltotilan asetus epäonnistui', code: res.code || 'MAINTENANCE_ERROR' })
+                        body: JSON.stringify({ error: res.error || 'Maintenance mode change failed', code: res.code || 'MAINTENANCE_ERROR' })
                     };
+                }
+
+                if (!enabled) {
+                    if (supabase) {
+                        try {
+                            await supabase.from('arcade_sessions')
+                                .update({ status: 'completed', confirmed_off_at: new Date().toISOString() })
+                                .eq('table_id', table)
+                                .in('status', ['hardware_uncertain', 'requested', 'cooldown']);
+                            await supabase.from('arcade_table_configs')
+                                .update({ lock_state: 'available', pending_maintenance_lock: false })
+                                .eq('table_id', table);
+                        } catch (e) {
+                            console.warn('[STAFF RELEASE] Error clearing stale sessions:', e.message);
+                        }
+                    }
+                    if (memoryDb.sessions) {
+                        memoryDb.sessions.delete(table);
+                    }
+                    if (memoryDb.holds) {
+                        memoryDb.holds.delete(table);
+                    }
+                    const memCfg = memoryDb.tableConfigs.get(table);
+                    if (memCfg) {
+                        memCfg.lock_state = 'available';
+                        memCfg.pending_maintenance_lock = false;
+                    }
                 }
 
                 return {

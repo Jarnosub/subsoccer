@@ -14,9 +14,11 @@
         "vitest": "^4.0.18"
     },
     "dependencies": {
+        "@netlify/functions": "^6.0.0",
         "@supabase/supabase-js": "^2.101.1",
         "cors": "^2.8.6",
         "express": "^5.2.1",
+        "mqtt": "^5.15.2",
         "node-cron": "^4.2.1",
         "nodemailer": "^9.0.6",
         "qrcode": "^1.5.4",

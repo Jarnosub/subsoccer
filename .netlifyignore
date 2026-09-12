@@ -26,3 +26,18 @@ lighthouse-login*.json
 lighthouse-login*.html
 lighthouse-instant-play*.json
 lighthouse-instant-play*.html
+
+# Internal development and sensitive directories (Security audit)
+scratch/
+services/
+tests/
+supabase/
+migrations/
+docs/
+.agents/
+.env*
+*.backup*
+*.bak
+*.json.bak
+*.flag
+
