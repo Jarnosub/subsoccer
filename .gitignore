@@ -58,3 +58,4 @@ playwright-report/
 *.backup*
 *.backup-*
 .config/
+services/arcade-gateway/gateway-wal.json
