@@ -83,8 +83,7 @@ const handler = async (event) => {
             // Probe hardware via fresh MQTT telemetry
             const probe = await probeOutletOffMqtt({
                 deviceSn,
-                targetOutletId,
-                timeoutMs: 5000
+                targetOutletId
             });
 
             console.log(`[RECONCILE CRON] Hardware probe for Outlet ${targetOutletId}:`, probe);

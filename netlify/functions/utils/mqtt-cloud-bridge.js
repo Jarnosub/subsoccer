@@ -11,10 +11,13 @@
  * - Ephemeral connection lifecycle (connect -> suback -> pub -> observe -> end)
  * - Anti-stale protection: strictly discards broker retained messages (packet.retain === true)
  * - Chronological causality: ignores telemetry arriving before command publish / probe start
+ * - Measurement freshness verification: validates genuine device timestamps (${TIME})
+ *   and command correlation (Action 3 for timed play)
  * - Parses genuine NETIO MQTT-flex ${OUTPUTS_STATUS} JSON payloads
  * - Searches outputs strictly by ID field (`o.ID === targetOutletId`), NEVER by array index
- * - Validates numeric State (0 = OFF, 1 = ON)
- * - Bounded timeouts with fail-closed safety (missing telemetry yields failure, NEVER assumed success)
+ * - Strictly validates numeric State (0 = OFF, 1 = ON) and rejects invalid values (e.g. "0-invalid")
+ * - Bounded timeouts adapted to device periodic interval (15s probe timeout for 5s periodic interval)
+ * - Fail-closed safety: missing telemetry yields failure, NEVER assumed success
  * - No optimistic fallbacks: OPTIMISTIC_NO_TELEMETRY and OPTIMISTIC_HARDWARE_PULSE_EXPIRED removed
  * - Single dispatch with no retries that could duplicate physical plays
  * 
@@ -23,7 +26,7 @@
  * - Topic Status:  subsoccer/test-<sn>/status
  * - Trigger 1 (Event):   {"type": "change", "source": "OUTPUTS/1/STATE"}
  * - Trigger 2 (Timer):    {"type": "timer", "period": 5}
- * - Payload template:     ${OUTPUTS_STATUS}
+ * - Payload template:     {"Time": "${TIME}", "Outputs": ${OUTPUTS_STATUS}}
  *   (Note: ${JDOUT_STATUS} is invalid in PowerBOX 3PF and triggers "Variable parser: Invalid variable")
  */
 
@@ -81,7 +84,13 @@ function validateMqttConfig(config, { requireDeviceSn = true, isProductionStrict
 /**
  * Parse genuine NETIO ${OUTPUTS_STATUS} payload.
  * Handles both `{ Outputs: [...] }` wrapper and raw `[...]` array.
- * Extracts outlet ID and numeric State (0 or 1).
+ * Extracts device timestamp if present (Time, time, timestamp, Agent.Time).
+ * Strictly validates:
+ * - ID must be a positive integer (rejects "1-invalid", floats, negatives)
+ * - State must strictly be 0 or 1 (rejects "0-invalid", booleans, floats, other numbers)
+ * 
+ * @param {Buffer|string} msgBuffer
+ * @returns {{ outputs: Array<{ ID: number, State: number, Action?: number, Delay?: number, Name?: string }>, deviceTime: string|null, deviceTimeMs: number|null } | null}
  */
 function parseNetioOutputsTelemetry(msgBuffer) {
     if (!msgBuffer) return null;
@@ -103,24 +112,73 @@ function parseNetioOutputsTelemetry(msgBuffer) {
 
     if (!outputs) return null;
 
-    return outputs.map(o => {
-        const idNum = typeof o.ID === 'number' ? o.ID : parseInt(o.ID, 10);
-        let stateNum = null;
-        if (typeof o.State === 'number') {
-            stateNum = o.State;
-        } else if (o.State !== undefined && o.State !== null) {
-            const parsed = parseInt(o.State, 10);
-            if (!isNaN(parsed)) stateNum = parsed;
+    let deviceTime = null;
+    let deviceTimeMs = null;
+    const rawTime = data.Time || data.time || data.timestamp || (data.Agent && (data.Agent.Time || data.Agent.time));
+    if (rawTime) {
+        const parsedMs = Date.parse(rawTime);
+        if (!isNaN(parsedMs)) {
+            deviceTime = new Date(parsedMs).toISOString();
+            deviceTimeMs = parsedMs;
+        }
+    }
+
+    const parsedOutputs = [];
+    for (const o of outputs) {
+        if (!o || typeof o !== 'object') continue;
+
+        // STRICT ID VALIDATION: must be a genuine positive integer
+        let idNum = null;
+        if (typeof o.ID === 'number' && Number.isInteger(o.ID) && o.ID > 0) {
+            idNum = o.ID;
+        } else if (typeof o.ID === 'string' && /^[1-9]\d*$/.test(o.ID.trim())) {
+            idNum = Number(o.ID.trim());
+        } else {
+            // Reject invalid ID (e.g. "1-invalid", negative, float, non-numeric)
+            continue;
         }
 
-        return {
+        // STRICT STATE VALIDATION: must strictly be 0 or 1. No "0-invalid", no loose strings, no floats.
+        let stateNum = null;
+        if (o.State === 0 || o.State === 1) {
+            stateNum = o.State;
+        } else if (o.State === '0') {
+            stateNum = 0;
+        } else if (o.State === '1') {
+            stateNum = 1;
+        } else {
+            // Reject anything else (e.g. "0-invalid", 2, true, false, null)
+            continue;
+        }
+
+        let actionNum = undefined;
+        if (typeof o.Action === 'number' && Number.isInteger(o.Action)) {
+            actionNum = o.Action;
+        } else if (typeof o.Action === 'string' && /^\d+$/.test(o.Action.trim())) {
+            actionNum = Number(o.Action.trim());
+        }
+
+        let delayNum = undefined;
+        if (typeof o.Delay === 'number' && !isNaN(o.Delay)) {
+            delayNum = o.Delay;
+        } else if (typeof o.Delay === 'string' && /^\d+$/.test(o.Delay.trim())) {
+            delayNum = Number(o.Delay.trim());
+        }
+
+        parsedOutputs.push({
             ID: idNum,
             State: stateNum,
-            Action: typeof o.Action === 'number' ? o.Action : undefined,
-            Delay: typeof o.Delay === 'number' ? o.Delay : undefined,
-            Name: o.Name
-        };
-    }).filter(o => !isNaN(o.ID) && o.State !== null && !isNaN(o.State));
+            Action: actionNum,
+            Delay: delayNum,
+            Name: typeof o.Name === 'string' ? o.Name : undefined
+        });
+    }
+
+    return {
+        outputs: parsedOutputs,
+        deviceTime,
+        deviceTimeMs
+    };
 }
 
 /**
@@ -157,6 +215,8 @@ function createMqttClient(config, clientPrefix = 'cloud-fn') {
  * - NO OPTIMISTIC_NO_TELEMETRY: timeout without telemetry returns failure.
  * - Strictly ignores retained messages (`packet.retain === true`).
  * - Chronological causality: ignores telemetry received before command publish ACK.
+ * - Measurement freshness: if device timestamp is provided, verifies it is not stale.
+ * - Command correlation: if Action/Delay reported, verifies Action is 3 (timed play).
  * - Matches outlet strictly by ID field (`o.ID === targetOutletId`).
  * 
  * @param {Object} options
@@ -164,7 +224,7 @@ function createMqttClient(config, clientPrefix = 'cloud-fn') {
  * @param {number} options.durationSeconds - Game duration in seconds
  * @param {number} [options.targetOutletId=1] - Table power outlet (Output 1)
  * @param {number} [options.attractOutletId=3] - Attract lights outlet (Output 3)
- * @param {number} [options.timeoutMs=12000] - Max wait time for activation ACK
+ * @param {number} [options.timeoutMs=15000] - Max wait time for activation ACK
  * @returns {Promise<{ success: boolean, code?: string, observedAt?: string, error?: string, rawTelemetry?: any }>}
  */
 async function dispatchTimedPlayMqtt({
@@ -172,24 +232,33 @@ async function dispatchTimedPlayMqtt({
     durationSeconds,
     targetOutletId = 1,
     attractOutletId = 3,
-    timeoutMs = 12000
+    timeoutMs = (process.env.TEST_DISPATCH_TIMEOUT_MS ? Number(process.env.TEST_DISPATCH_TIMEOUT_MS) : (Number(process.env.MQTT_DISPATCH_TIMEOUT_MS) || 15000))
 }) {
-    const config = getMqttConfig({ deviceSn });
-    validateMqttConfig(config, { requireDeviceSn: true });
-
-    const sn = config.deviceSn;
-    const topicCmd = `${config.topicPrefix}-${sn}/cmd`;
-    const topicStatus = `${config.topicPrefix}-${sn}/status`;
-
-    const delayMs = Math.round(durationSeconds * 1000);
-    const payloadCmd = JSON.stringify({
-        Outputs: [
-            { ID: targetOutletId, Action: 3, Delay: delayMs },
-            { ID: attractOutletId, Action: 0 }
-        ]
-    });
-
     return new Promise((resolve) => {
+        let config;
+        try {
+            config = getMqttConfig({ deviceSn });
+            validateMqttConfig(config, { requireDeviceSn: true });
+        } catch (cfgErr) {
+            return resolve({
+                success: false,
+                code: 'CONFIG_INVALID',
+                error: cfgErr.message
+            });
+        }
+
+        const sn = config.deviceSn;
+        const topicCmd = `${config.topicPrefix}-${sn}/cmd`;
+        const topicStatus = `${config.topicPrefix}-${sn}/status`;
+
+        const delayMs = Math.round(durationSeconds * 1000);
+        const payloadCmd = JSON.stringify({
+            Outputs: [
+                { ID: targetOutletId, Action: 3, Delay: delayMs },
+                { ID: attractOutletId, Action: 0 }
+            ]
+        });
+
         let client = null;
         let isDone = false;
         let commandPublishedAt = 0;
@@ -278,17 +347,29 @@ async function dispatchTimedPlayMqtt({
                 return;
             }
 
-            const outputs = parseNetioOutputsTelemetry(msgBuffer);
-            if (!outputs) return;
+            const parsed = parseNetioOutputsTelemetry(msgBuffer);
+            if (!parsed || !parsed.outputs || parsed.outputs.length === 0) return;
+
+            // Device timestamp freshness check: if device provided a timestamp, verify it is not stale
+            if (parsed.deviceTimeMs !== null && parsed.deviceTimeMs < (commandPublishedAt - 3000)) {
+                console.log(`[MQTT BRIDGE] Discarding stale device timestamp: ${parsed.deviceTime} (command was at ${new Date(commandPublishedAt).toISOString()})`);
+                return;
+            }
 
             // Search strictly by ID field, NOT by array index
-            const targetOutput = outputs.find(o => o.ID === targetOutletId);
+            const targetOutput = parsed.outputs.find(o => o.ID === targetOutletId);
             if (targetOutput && targetOutput.State === 1) {
+                // Command correlation: if Action is reported, verify it is 3 (timed play)
+                if (targetOutput.Action !== undefined && targetOutput.Action !== 3) {
+                    console.log(`[MQTT BRIDGE] Output ${targetOutletId} is State 1 but Action is ${targetOutput.Action} (expected 3 for timed play). Ignoring.`);
+                    return;
+                }
+
                 console.log(`[MQTT BRIDGE] Verified Output ${targetOutletId} is ACTIVE (State: 1)!`);
                 finish({
                     success: true,
-                    observedAt: new Date().toISOString(),
-                    rawTelemetry: outputs
+                    observedAt: parsed.deviceTime || new Date().toISOString(),
+                    rawTelemetry: parsed.outputs
                 });
             }
         });
@@ -300,32 +381,44 @@ async function dispatchTimedPlayMqtt({
  * 
  * Strict safety rules:
  * - NO OPTIMISTIC_HARDWARE_PULSE_EXPIRED: timeout returns confirmedOff: false.
+ * - Timeout adapted to periodic interval (15000ms default for 5s device interval + connect delay).
  * - Does NOT assume {"Outputs": []} triggers a synchronous MQTT reply. Listens for fresh status
  *   telemetry (from periodic timer or event) received at or after probe start.
  * - Strictly ignores retained messages (`packet.retain === true`).
  * - Chronological causality: only considers messages received at or after probe start.
+ * - Measurement freshness: if device timestamp is provided, verifies it was generated at or after probe start.
  * - Requires numeric State === 0. State === 1 returns confirmedOff: false.
  * 
  * @param {Object} options
  * @param {string} [options.deviceSn]
  * @param {number} [options.targetOutletId=1]
- * @param {number} [options.timeoutMs=5000]
+ * @param {number} [options.timeoutMs=15000]
  * @returns {Promise<{ confirmedOff: boolean, state: number|null, observedAt?: string|null, roundtripMs?: number, reason?: string }>}
  */
 async function probeOutletOffMqtt({
     deviceSn,
     targetOutletId = 1,
-    timeoutMs = 5000
+    timeoutMs = (process.env.TEST_PROBE_TIMEOUT_MS ? Number(process.env.TEST_PROBE_TIMEOUT_MS) : (Number(process.env.MQTT_PROBE_TIMEOUT_MS) || 15000))
 }) {
-    const config = getMqttConfig({ deviceSn });
-    validateMqttConfig(config, { requireDeviceSn: true });
-
-    const sn = config.deviceSn;
-    const topicCmd = `${config.topicPrefix}-${sn}/cmd`;
-    const topicStatus = `${config.topicPrefix}-${sn}/status`;
-    const probeStartedAt = Date.now();
-
     return new Promise((resolve) => {
+        let config;
+        try {
+            config = getMqttConfig({ deviceSn });
+            validateMqttConfig(config, { requireDeviceSn: true });
+        } catch (cfgErr) {
+            return resolve({
+                confirmedOff: false,
+                state: null,
+                observedAt: null,
+                reason: cfgErr.message
+            });
+        }
+
+        const sn = config.deviceSn;
+        const topicCmd = `${config.topicPrefix}-${sn}/cmd`;
+        const topicStatus = `${config.topicPrefix}-${sn}/status`;
+        const probeStartedAt = Date.now();
+
         let client = null;
         let isDone = false;
 
@@ -394,10 +487,16 @@ async function probeOutletOffMqtt({
                 return;
             }
 
-            const outputs = parseNetioOutputsTelemetry(msgBuffer);
-            if (!outputs) return;
+            const parsed = parseNetioOutputsTelemetry(msgBuffer);
+            if (!parsed || !parsed.outputs || parsed.outputs.length === 0) return;
 
-            const targetOutput = outputs.find(o => o.ID === targetOutletId);
+            // Device timestamp freshness check: if device provided a timestamp, verify it was generated at or after probe started
+            if (parsed.deviceTimeMs !== null && parsed.deviceTimeMs < (probeStartedAt - 3000)) {
+                console.log(`[MQTT PROBE] Discarding stale device timestamp in probe: ${parsed.deviceTime} (probe started at ${new Date(probeStartedAt).toISOString()})`);
+                return;
+            }
+
+            const targetOutput = parsed.outputs.find(o => o.ID === targetOutletId);
             if (targetOutput && typeof targetOutput.State === 'number') {
                 const isOff = (targetOutput.State === 0);
                 const roundtripMs = Date.now() - probeStartedAt;
@@ -405,7 +504,7 @@ async function probeOutletOffMqtt({
                     confirmedOff: isOff,
                     state: targetOutput.State,
                     roundtripMs,
-                    observedAt: new Date().toISOString(),
+                    observedAt: parsed.deviceTime || new Date().toISOString(),
                     reason: isOff ? 'CONFIRMED_OFF' : 'OUTLET_STILL_ON'
                 });
             }
@@ -484,11 +583,11 @@ async function setAuxOutletMqtt({
         client.on('message', (topic, msgBuffer, packet) => {
             if (topic !== topicStatus || (packet && packet.retain)) return;
             if (Date.now() < startedAt) return;
-            const outputs = parseNetioOutputsTelemetry(msgBuffer);
-            if (!outputs) return;
-            const target = outputs.find(o => o.ID === outletId);
+            const parsed = parseNetioOutputsTelemetry(msgBuffer);
+            if (!parsed || !parsed.outputs) return;
+            const target = parsed.outputs.find(o => o.ID === outletId);
             if (target && target.State === action) {
-                finish({ success: true, state: target.State, observedAt: new Date().toISOString() });
+                finish({ success: true, state: target.State, observedAt: parsed.deviceTime || new Date().toISOString() });
             }
         });
     });

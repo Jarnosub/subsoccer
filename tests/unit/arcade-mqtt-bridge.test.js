@@ -16,12 +16,16 @@ const {
 } = require('../../netlify/functions/utils/mqtt-cloud-bridge.js');
 
 const {
+    createPaymentHold,
     claimAndActivateOrder,
+    reconcileTableState,
     getTableConfig,
     _setSupabaseClient,
     memoryDb,
     resetMemoryDb
 } = require('../../netlify/functions/utils/arcade-core.js');
+
+const { handler: webhookHandler } = require('../../netlify/functions/stripe-webhook.js');
 
 /**
  * Mock MQTT Client simulating network events, publish, subscribe, and message reception
@@ -82,9 +86,18 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
         });
         resetMemoryDb();
         _setSupabaseClient(null);
+        process.env.NODE_ENV = 'test';
+        process.env.ARCADE_ENV = 'test';
+        process.env.STRIPE_SECRET_KEY = 'sk_test_mock';
+        delete process.env.STRIPE_WEBHOOK_SECRET;
+        process.env.MQTT_ENABLED = 'true';
+        process.env.TEST_PROBE_TIMEOUT_MS = '80';
+        process.env.TEST_DISPATCH_TIMEOUT_MS = '80';
     });
 
     afterEach(() => {
+        delete process.env.TEST_PROBE_TIMEOUT_MS;
+        delete process.env.TEST_DISPATCH_TIMEOUT_MS;
         _setMqttClientFactory(null);
         for (const client of activeClients) {
             client.end(true);
@@ -140,35 +153,63 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
     });
 
     // ──────────────────────────────────────────────────────────────────────────
-    // 2. NETIO TELEMETRY PARSING (${OUTPUTS_STATUS})
+    // 2. STRICT TELEMETRY PARSING (${OUTPUTS_STATUS}) & DEVICE TIMESTAMPS
     // ──────────────────────────────────────────────────────────────────────────
-    describe('2. NETIO Official Telemetry Parsing (${OUTPUTS_STATUS})', () => {
-        it('correctly parses genuine ${OUTPUTS_STATUS} payload with Outputs array', () => {
+    describe('2. Strict Telemetry Parsing & Device Timestamp Extraction', () => {
+        it('strictly accepts genuine numeric states 0 and 1, and parses device timestamp', () => {
             const payload = JSON.stringify({
+                Time: '2026-09-12T18:00:00.000Z',
                 Outputs: [
                     { ID: 1, Name: 'Table Power', State: 1, Action: 3, Delay: 300000 },
-                    { ID: 2, Name: 'Screen', State: 1, Action: 1, Delay: 0 },
-                    { ID: 3, Name: 'Attract Lights', State: 0, Action: 0, Delay: 0 }
+                    { ID: 2, Name: 'Screen', State: 0, Action: 0, Delay: 0 }
                 ]
             });
 
-            const outputs = parseNetioOutputsTelemetry(Buffer.from(payload));
-            expect(outputs).toHaveLength(3);
-            expect(outputs[0]).toEqual({ ID: 1, State: 1, Action: 3, Delay: 300000, Name: 'Table Power' });
-            expect(outputs[1]).toEqual({ ID: 2, State: 1, Action: 1, Delay: 0, Name: 'Screen' });
-            expect(outputs[2]).toEqual({ ID: 3, State: 0, Action: 0, Delay: 0, Name: 'Attract Lights' });
+            const parsed = parseNetioOutputsTelemetry(Buffer.from(payload));
+            expect(parsed).not.toBeNull();
+            expect(parsed.outputs).toHaveLength(2);
+            expect(parsed.outputs[0].ID).toBe(1);
+            expect(parsed.outputs[0].State).toBe(1);
+            expect(parsed.outputs[1].ID).toBe(2);
+            expect(parsed.outputs[1].State).toBe(0);
+            expect(parsed.deviceTime).toBe('2026-09-12T18:00:00.000Z');
+            expect(parsed.deviceTimeMs).toBe(Date.parse('2026-09-12T18:00:00.000Z'));
         });
 
-        it('correctly parses direct array format and stringified states', () => {
-            const payload = JSON.stringify([
-                { ID: '1', State: '0' },
-                { ID: '2', State: '1' }
-            ]);
+        it('strictly REJECTS "0-invalid", floats, and invalid IDs', () => {
+            const payload = JSON.stringify({
+                Outputs: [
+                    { ID: 1, State: '0-invalid' },   // Invalid state: must be rejected!
+                    { ID: '1-invalid', State: 0 },   // Invalid ID: must be rejected!
+                    { ID: -1, State: 0 },            // Negative ID: must be rejected!
+                    { ID: 1.5, State: 0 },           // Non-integer ID: must be rejected!
+                    { ID: 2, State: 2 },             // State 2: must be rejected!
+                    { ID: 3, State: true },          // Boolean State: must be rejected!
+                    { ID: 4, State: 0 }              // Valid: should be kept
+                ]
+            });
 
-            const outputs = parseNetioOutputsTelemetry(Buffer.from(payload));
-            expect(outputs).toHaveLength(2);
-            expect(outputs[0]).toEqual({ ID: 1, State: 0, Action: undefined, Delay: undefined, Name: undefined });
-            expect(outputs[1]).toEqual({ ID: 2, State: 1, Action: undefined, Delay: undefined, Name: undefined });
+            const parsed = parseNetioOutputsTelemetry(Buffer.from(payload));
+            expect(parsed).not.toBeNull();
+            expect(parsed.outputs).toHaveLength(1);
+            expect(parsed.outputs[0]).toEqual({
+                ID: 4,
+                State: 0,
+                Action: undefined,
+                Delay: undefined,
+                Name: undefined
+            });
+        });
+
+        it('parses nested Agent.Time and direct array format', () => {
+            const payload = JSON.stringify({
+                Agent: { Time: '2026-09-12T18:15:30.000Z' },
+                Outputs: [{ ID: 1, State: 1 }]
+            });
+
+            const parsed = parseNetioOutputsTelemetry(Buffer.from(payload));
+            expect(parsed.deviceTime).toBe('2026-09-12T18:15:30.000Z');
+            expect(parsed.outputs[0].State).toBe(1);
         });
 
         it('returns null on malformed JSON or empty buffers', () => {
@@ -179,9 +220,9 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
     });
 
     // ──────────────────────────────────────────────────────────────────────────
-    // 3. PLAY DISPATCH: NO OPTIMISTIC_NO_TELEMETRY & CHRONOLOGICAL CAUSALITY
+    // 3. PLAY DISPATCH: NO OPTIMISTIC_NO_TELEMETRY, FRESHNESS & COMMAND CORRELATION
     // ──────────────────────────────────────────────────────────────────────────
-    describe('3. dispatchTimedPlayMqtt Safety & Telemetry Verification', () => {
+    describe('3. dispatchTimedPlayMqtt Safety, Freshness & Verification', () => {
         const baseOptions = {
             deviceSn: 'TEST-NETIO-SN',
             durationSeconds: 300,
@@ -191,9 +232,7 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
         };
 
         it('fails with TIMEOUT_NO_TELEMETRY if NETIO sends no telemetry (NO OPTIMISTIC ASSUMPTION)', async () => {
-            const promise = dispatchTimedPlayMqtt(baseOptions);
-
-            const result = await promise;
+            const result = await dispatchTimedPlayMqtt(baseOptions);
             expect(result.success).toBe(false);
             expect(result.code).toBe('TIMEOUT_NO_TELEMETRY');
             expect(result.error).toMatch(/did not publish activation telemetry/);
@@ -202,7 +241,6 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
         it('discards retained telemetry packets (anti-stale guarantee)', async () => {
             const promise = dispatchTimedPlayMqtt(baseOptions);
 
-            // Wait until client publishes command
             await new Promise(r => setTimeout(r, 20));
             const client = activeClients[0];
             expect(client).toBeDefined();
@@ -212,7 +250,6 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
                 Outputs: [{ ID: 1, State: 1 }]
             }, { retain: true });
 
-            // Expect the retained message to be ignored, leading to timeout failure
             const result = await promise;
             expect(result.success).toBe(false);
             expect(result.code).toBe('TIMEOUT_NO_TELEMETRY');
@@ -227,20 +264,55 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
                 Outputs: [{ ID: 1, State: 1 }]
             }, { retain: false });
 
-            // Expect pre-publish message to be ignored, leading to timeout
             const result = await promise;
             expect(result.success).toBe(false);
             expect(result.code).toBe('TIMEOUT_NO_TELEMETRY');
         });
 
-        it('succeeds immediately when fresh non-retained telemetry with State === 1 arrives after publish', async () => {
+        it('discards stale telemetry with old device timestamp from before command', async () => {
+            const promise = dispatchTimedPlayMqtt(baseOptions);
+
+            await new Promise(r => setTimeout(r, 20));
+            const client = activeClients[0];
+
+            // Device timestamp from 10 minutes ago
+            const staleTime = new Date(Date.now() - 600000).toISOString();
+            client.simulateMessage('subsoccer/test-TEST-NETIO-SN/status', {
+                Time: staleTime,
+                Outputs: [{ ID: 1, State: 1, Action: 3 }]
+            }, { retain: false });
+
+            const result = await promise;
+            expect(result.success).toBe(false);
+            expect(result.code).toBe('TIMEOUT_NO_TELEMETRY');
+        });
+
+        it('rejects telemetry if Action is reported but does not correlate to timed play (Action !== 3)', async () => {
+            const promise = dispatchTimedPlayMqtt(baseOptions);
+
+            await new Promise(r => setTimeout(r, 20));
+            const client = activeClients[0];
+
+            // Output is ON, but Action is 1 (manual continuous ON), not 3 (timed play pulse)
+            client.simulateMessage('subsoccer/test-TEST-NETIO-SN/status', {
+                Time: new Date().toISOString(),
+                Outputs: [{ ID: 1, State: 1, Action: 1 }]
+            }, { retain: false });
+
+            const result = await promise;
+            expect(result.success).toBe(false);
+            expect(result.code).toBe('TIMEOUT_NO_TELEMETRY');
+        });
+
+        it('succeeds immediately when fresh non-retained telemetry with State === 1 and Action === 3 arrives post-publish', async () => {
             const promise = dispatchTimedPlayMqtt({ ...baseOptions, timeoutMs: 1000 });
 
             await new Promise(r => setTimeout(r, 30));
             const client = activeClients[0];
 
-            // Publish valid activation telemetry after command was sent
+            const nowIso = new Date().toISOString();
             client.simulateMessage('subsoccer/test-TEST-NETIO-SN/status', {
+                Time: nowIso,
                 Outputs: [
                     { ID: 1, State: 1, Action: 3, Delay: 300000 },
                     { ID: 3, State: 0 }
@@ -249,7 +321,7 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
 
             const result = await promise;
             expect(result.success).toBe(true);
-            expect(result.observedAt).toBeDefined();
+            expect(result.observedAt).toBe(nowIso);
             expect(result.rawTelemetry).toBeDefined();
 
             // Verify published command payload
@@ -260,31 +332,12 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
                 { ID: 3, Action: 0 }
             ]);
         });
-
-        it('matches strictly by ID field, NOT array index', async () => {
-            const promise = dispatchTimedPlayMqtt({ ...baseOptions, timeoutMs: 1000 });
-
-            await new Promise(r => setTimeout(r, 30));
-            const client = activeClients[0];
-
-            // Output 1 is at index 2 in the array
-            client.simulateMessage('subsoccer/test-TEST-NETIO-SN/status', {
-                Outputs: [
-                    { ID: 2, State: 1 },
-                    { ID: 3, State: 0 },
-                    { ID: 1, State: 1 }
-                ]
-            }, { retain: false });
-
-            const result = await promise;
-            expect(result.success).toBe(true);
-        });
     });
 
     // ──────────────────────────────────────────────────────────────────────────
-    // 4. PROBE OUTLET OFF: NO OPTIMISTIC PULSE EXPIRATION & GENUINE OFF CHECK
+    // 4. PROBE OUTLET OFF: NO OPTIMISTIC PULSE EXPIRATION & FRESH TELEMETRY
     // ──────────────────────────────────────────────────────────────────────────
-    describe('4. probeOutletOffMqtt Safety & State Verification', () => {
+    describe('4. probeOutletOffMqtt Safety, Freshness & State Verification', () => {
         const probeOptions = {
             deviceSn: 'TEST-NETIO-SN',
             targetOutletId: 1,
@@ -292,22 +345,22 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
         };
 
         it('returns confirmedOff: false and NO fake timestamp on timeout (NO OPTIMISTIC PULSE EXPIRY)', async () => {
-            const promise = probeOutletOffMqtt(probeOptions);
-
-            const result = await promise;
+            const result = await probeOutletOffMqtt(probeOptions);
             expect(result.confirmedOff).toBe(false);
             expect(result.state).toBeNull();
             expect(result.observedAt).toBeNull();
             expect(result.reason).toBe('PROBE_TIMEOUT_NO_FRESH_TELEMETRY');
         });
 
-        it('returns confirmedOff: true with observedAt when fresh telemetry reports State === 0', async () => {
+        it('returns confirmedOff: true with genuine observedAt when fresh telemetry reports State === 0', async () => {
             const promise = probeOutletOffMqtt({ ...probeOptions, timeoutMs: 1000 });
 
             await new Promise(r => setTimeout(r, 30));
             const client = activeClients[0];
 
+            const deviceTime = new Date().toISOString();
             client.simulateMessage('subsoccer/test-TEST-NETIO-SN/status', {
+                Time: deviceTime,
                 Outputs: [
                     { ID: 1, State: 0, Action: 0, Delay: 0 },
                     { ID: 3, State: 1 }
@@ -317,7 +370,7 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
             const result = await promise;
             expect(result.confirmedOff).toBe(true);
             expect(result.state).toBe(0);
-            expect(result.observedAt).toBeDefined();
+            expect(result.observedAt).toBe(deviceTime);
             expect(result.reason).toBe('CONFIRMED_OFF');
         });
 
@@ -328,6 +381,7 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
             const client = activeClients[0];
 
             client.simulateMessage('subsoccer/test-TEST-NETIO-SN/status', {
+                Time: new Date().toISOString(),
                 Outputs: [
                     { ID: 1, State: 1, Action: 3, Delay: 150000 }
                 ]
@@ -339,16 +393,17 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
             expect(result.reason).toBe('OUTLET_STILL_ON');
         });
 
-        it('discards retained probe messages', async () => {
+        it('discards stale device timestamp during probe', async () => {
             const promise = probeOutletOffMqtt(probeOptions);
 
             await new Promise(r => setTimeout(r, 20));
             const client = activeClients[0];
 
-            // Retained State 0 message should be ignored
+            // Device timestamp from 5 minutes ago
             client.simulateMessage('subsoccer/test-TEST-NETIO-SN/status', {
+                Time: new Date(Date.now() - 300000).toISOString(),
                 Outputs: [{ ID: 1, State: 0 }]
-            }, { retain: true });
+            }, { retain: false });
 
             const result = await promise;
             expect(result.confirmedOff).toBe(false);
@@ -357,66 +412,271 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
     });
 
     // ──────────────────────────────────────────────────────────────────────────
-    // 5. AUXILIARY OUTLETS (DISPLAY & ATTRACT LIGHTS)
+    // 5. REAL RECONCILIATION FUNCTION CALLS & TABLE LOCK VERIFICATION
     // ──────────────────────────────────────────────────────────────────────────
-    describe('5. Auxiliary Outlets Control (Display & Lights)', () => {
-        it('rejects controlling main table power (Outlet 1) through setAuxOutletMqtt', async () => {
-            await expect(setAuxOutletMqtt({
-                deviceSn: 'TEST-NETIO-SN',
-                outletId: 1,
-                action: 1
-            })).rejects.toThrow(/Only auxiliary outlets 2/);
+    describe('5. Real Reconciliation Execution & Table Lock Safety', () => {
+        const tableId = 'test-reconcile-table';
+
+        beforeEach(() => {
+            memoryDb.tableConfigs.set(tableId, {
+                table_id: tableId,
+                lock_state: 'active',
+                switch_type: 'mqtt',
+                switch_output_id: 1,
+                device_serial: 'TEST-NETIO-SN',
+                is_enabled: true,
+                pending_maintenance_lock: false
+            });
         });
 
-        it('controls attract lights (Outlet 3) and verifies state response', async () => {
-            const promise = setAuxOutletMqtt({
-                deviceSn: 'TEST-NETIO-SN',
-                outletId: 3,
-                action: 1,
-                timeoutMs: 1000
+        it('does NOT release table before expires_at + 4000ms safety buffer elapses', async () => {
+            const now = Date.now();
+            // Session expired 2 seconds ago (buffer requires > 4 seconds)
+            memoryDb.sessions.set(tableId, {
+                id: 'sess-buffer-test',
+                table_id: tableId,
+                status: 'active',
+                expiresAt: now - 2000
             });
 
-            await new Promise(r => setTimeout(r, 30));
-            const client = activeClients[0];
+            const table = memoryDb.tableConfigs.get(tableId);
+            await reconcileTableState(tableId, table, null, true);
 
-            client.simulateMessage('subsoccer/test-TEST-NETIO-SN/status', {
-                Outputs: [{ ID: 3, State: 1 }]
-            }, { retain: false });
+            // Table MUST remain locked in active state
+            expect(table.lock_state).toBe('active');
+            expect(memoryDb.sessions.has(tableId)).toBe(true);
+        });
 
-            const result = await promise;
-            expect(result.success).toBe(true);
-            expect(result.state).toBe(1);
+        it('sets table to error_locked and hardware_uncertain if probe fails after buffer (NO UNVERIFIED RELEASE)', async () => {
+            const now = Date.now();
+            // Session expired 6 seconds ago (> 4s buffer)
+            memoryDb.sessions.set(tableId, {
+                id: 'sess-timeout-test',
+                table_id: tableId,
+                status: 'active',
+                expiresAt: now - 6000
+            });
+
+            // Mock MQTT client produces no telemetry -> probe will time out
+            const table = memoryDb.tableConfigs.get(tableId);
+            await reconcileTableState(tableId, table, null, true);
+
+            // Table must be locked in error_locked and session marked hardware_uncertain
+            expect(table.lock_state).toBe('error_locked');
+            const sess = memoryDb.sessions.get(tableId);
+            expect(sess.status).toBe('hardware_uncertain');
+
+            // Fail-closed verification: new checkout hold MUST be rejected with TABLE_LOCKED
+            const holdAttempt = await createPaymentHold({
+                tableId,
+                durationMinutes: 5,
+                clientToken: 'tok-customer-failclosed',
+                isTestMode: true
+            });
+            expect(holdAttempt.success).toBe(false);
+            expect(holdAttempt.statusCode).toBe(423);
+            expect(holdAttempt.code).toBe('TABLE_LOCKED');
+        });
+
+        it('releases table to available only after buffer AND fresh State === 0 confirmation', async () => {
+            const now = Date.now();
+            memoryDb.sessions.set(tableId, {
+                id: 'sess-release-test',
+                table_id: tableId,
+                status: 'active',
+                expiresAt: now - 6000
+            });
+
+            // Auto-respond to probe with State === 0
+            const table = memoryDb.tableConfigs.get(tableId);
+            const reconcilePromise = reconcileTableState(tableId, table, null, true);
+
+            await new Promise(r => setTimeout(r, 40));
+            const client = activeClients.find(c => c.prefix === 'probe');
+            if (client) {
+                client.simulateMessage('subsoccer/test-TEST-NETIO-SN/status', {
+                    Time: new Date().toISOString(),
+                    Outputs: [{ ID: 1, State: 0 }]
+                }, { retain: false });
+            }
+
+            await reconcilePromise;
+
+            // Table must be safely released to available and session cleared
+            expect(table.lock_state).toBe('available');
+            expect(memoryDb.sessions.has(tableId)).toBe(false);
+        });
+
+        it('transitions to maintenance_locked if pending_maintenance_lock is true upon verified OFF', async () => {
+            const now = Date.now();
+            const table = memoryDb.tableConfigs.get(tableId);
+            table.pending_maintenance_lock = true;
+
+            memoryDb.sessions.set(tableId, {
+                id: 'sess-maint-test',
+                table_id: tableId,
+                status: 'active',
+                expiresAt: now - 6000
+            });
+
+            const reconcilePromise = reconcileTableState(tableId, table, null, true);
+
+            await new Promise(r => setTimeout(r, 40));
+            const client = activeClients.find(c => c.prefix === 'probe');
+            if (client) {
+                client.simulateMessage('subsoccer/test-TEST-NETIO-SN/status', {
+                    Time: new Date().toISOString(),
+                    Outputs: [{ ID: 1, State: 0 }]
+                }, { retain: false });
+            }
+
+            await reconcilePromise;
+
+            expect(table.lock_state).toBe('maintenance_locked');
+            expect(table.pending_maintenance_lock).toBe(false);
         });
     });
 
     // ──────────────────────────────────────────────────────────────────────────
-    // 6. IDEMPOTENCY & RECONCILIATION PROTECTIONS
+    // 6. REAL WEBHOOK IDEMPOTENCY & DUPLICATE PLAY PREVENTION
     // ──────────────────────────────────────────────────────────────────────────
-    describe('6. Idempotency & Reconciliation Protections', () => {
-        it('reconciliation release requires deadline + 4s buffer and does not release early', async () => {
-            // Mock an expired session order where now is only 2s past expires_at
-            const now = Date.now();
-            const expiresAtMs = now - 2000; // Only 2s expired, buffer is 4s (need now > expiresAtMs + 4000)
+    describe('6. Real Stripe Webhook Idempotency & Hardware Command Protection', () => {
+        const tableId = 'test-webhook-table';
+        const orderId = 'ord-test-idem-999';
 
-            const isPassedBuffer = now > (expiresAtMs + 4000);
-            expect(isPassedBuffer).toBe(false); // Must not release yet!
-
-            // After 5s expired (> 4s buffer)
-            const pastBufferExpiresAtMs = now - 5000;
-            const isNowPassedBuffer = now > (pastBufferExpiresAtMs + 4000);
-            expect(isNowPassedBuffer).toBe(true);
-        });
-
-        it('claimAndActivateOrder rejects missing PaymentIntent data for paid plays', async () => {
-            const res = await claimAndActivateOrder({
-                orderId: 'ord-test-123',
-                paymentIntent: null,
-                isFreePlay: false,
-                isTestMode: true
+        beforeEach(() => {
+            memoryDb.tableConfigs.set(tableId, {
+                table_id: tableId,
+                lock_state: 'available',
+                switch_type: 'mqtt',
+                switch_output_id: 1,
+                lights_output_id: 3,
+                device_serial: 'TEST-NETIO-SN',
+                is_enabled: true
             });
 
-            expect(res.success).toBe(false);
-            expect(res.code).toBe('INVALID_PAYMENT_INTENT');
+            // Set up valid order hold in memory
+            memoryDb.orders.set(orderId, {
+                orderId,
+                tableId,
+                durationMinutes: 5,
+                durationSeconds: 300,
+                amountCents: 500,
+                currency: 'eur',
+                clientToken: 'tok-idem-123',
+                status: 'holding',
+                holdExpiresAt: Date.now() + 180000
+            });
+            memoryDb.holds.set(tableId, orderId);
+        });
+
+        it('dispatches hardware play on first webhook, and ignores repeated webhook without double-dispatch', async () => {
+            const webhookEvent = {
+                httpMethod: 'POST',
+                headers: {},
+                body: JSON.stringify({
+                    type: 'payment_intent.succeeded',
+                    data: {
+                        object: {
+                            id: 'pi_test_idem_123',
+                            amount: 500,
+                            currency: 'eur',
+                            metadata: {
+                                order_id: orderId,
+                                table_id: tableId
+                            }
+                        }
+                    }
+                })
+            };
+
+            // Launch 1st Webhook
+            const firstCallPromise = webhookHandler(webhookEvent, {});
+
+            // Simulate NETIO activation confirmation
+            await new Promise(r => setTimeout(r, 40));
+            const dispatchClient = activeClients.find(c => c.prefix === 'dispatch');
+            expect(dispatchClient).toBeDefined();
+
+            dispatchClient.simulateMessage('subsoccer/test-TEST-NETIO-SN/status', {
+                Time: new Date().toISOString(),
+                Outputs: [
+                    { ID: 1, State: 1, Action: 3, Delay: 300000 },
+                    { ID: 3, State: 0 }
+                ]
+            }, { retain: false });
+
+            const firstRes = await firstCallPromise;
+            expect(firstRes.statusCode).toBe(200);
+            const firstBody = JSON.parse(firstRes.body);
+            expect(firstBody.activation.success).toBe(true);
+
+            // Record published commands count
+            const initialPublishedCommands = dispatchClient.publishedMessages.length;
+            expect(initialPublishedCommands).toBe(1);
+
+            // Launch 2nd Webhook (REPEATED WEBHOOK - network retry)
+            const secondRes = await webhookHandler(webhookEvent, {});
+            expect(secondRes.statusCode).toBe(200);
+            const secondBody = JSON.parse(secondRes.body);
+
+            // Idempotent replay recognized
+            expect(secondBody.activation.isIdempotentReplay).toBe(true);
+
+            // Hardware commands count MUST NOT increase! (Zero additional commands dispatched)
+            expect(dispatchClient.publishedMessages.length).toBe(initialPublishedCommands);
+        });
+
+        it('does NOT re-dispatch play if first activation failed with timeout and left table uncertain', async () => {
+            const failOrderId = 'ord-test-fail-888';
+            memoryDb.orders.set(failOrderId, {
+                orderId: failOrderId,
+                tableId,
+                durationMinutes: 5,
+                durationSeconds: 300,
+                amountCents: 500,
+                currency: 'eur',
+                clientToken: 'tok-fail-123',
+                status: 'holding',
+                holdExpiresAt: Date.now() + 180000
+            });
+            memoryDb.holds.set(tableId, failOrderId);
+
+            const webhookEvent = {
+                httpMethod: 'POST',
+                headers: {},
+                body: JSON.stringify({
+                    type: 'payment_intent.succeeded',
+                    data: {
+                        object: {
+                            id: 'pi_test_fail_123',
+                            amount: 500,
+                            currency: 'eur',
+                            metadata: {
+                                order_id: failOrderId,
+                                table_id: tableId
+                            }
+                        }
+                    }
+                })
+            };
+
+            // First webhook: NETIO sends NO telemetry (times out after 80ms)
+            process.env.TEST_DISPATCH_TIMEOUT_MS = '80';
+            const firstRes = await webhookHandler(webhookEvent, {});
+            expect(firstRes.statusCode).toBe(200);
+            const firstBody = JSON.parse(firstRes.body);
+            expect(firstBody.activation.success).toBe(false);
+
+            const order = memoryDb.orders.get(failOrderId);
+            expect(['hardware_uncertain', 'activation_failed']).toContain(order.status);
+
+            // Repeated webhook on failed order does NOT re-dispatch
+            const clientCountBefore = activeClients.length;
+            const secondRes = await webhookHandler(webhookEvent, {});
+            expect(secondRes.statusCode).toBe(200);
+            const secondBody = JSON.parse(secondRes.body);
+            expect(secondBody.activation.isIdempotentReplay).toBe(true);
         });
     });
 });

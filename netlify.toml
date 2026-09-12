@@ -190,4 +190,5 @@
 
 [functions."arcade-reconcile-cron"]
   schedule = "* * * * *"
+  timeout = 26
 

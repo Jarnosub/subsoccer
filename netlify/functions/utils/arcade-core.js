@@ -368,16 +368,32 @@ async function reconcileTableState(tableId, tableConfig, netio, isTestMode) {
         // B. Normal session expiration: scheduled time + 4s has elapsed
         if ((session.status === 'active' || session.status === 'hardware_uncertain') && session.expiresAt && now > (session.expiresAt + 4000)) {
             let isOff = false;
+            let observedAt = null;
+            const isMqttMode = (tableConfig?.switch_type === 'mqtt') || (process.env.MQTT_ENABLED === 'true');
             try {
-                if (netio && typeof netio.verifyConfirmedOff === 'function') {
+                if (isMqttMode) {
+                    const deviceSn = tableConfig?.device_serial || process.env.HIVEMQ_DEVICE_SN;
+                    if (deviceSn) {
+                        const { probeOutletOffMqtt } = require('./mqtt-cloud-bridge');
+                        const probeRes = await probeOutletOffMqtt({
+                            deviceSn,
+                            targetOutletId: targetOutputId
+                        });
+                        if (probeRes.confirmedOff === true && probeRes.observedAt) {
+                            isOff = true;
+                            observedAt = probeRes.observedAt;
+                        }
+                    }
+                } else if (netio && typeof netio.verifyConfirmedOff === 'function') {
                     isOff = (await netio.verifyConfirmedOff(targetOutputId) === true);
+                    if (isOff) observedAt = new Date().toISOString();
                 }
             } catch (err) {
                 console.warn('[RECONCILIATION] Hardware probe failed during session expiration:', err.message);
                 isOff = false;
             }
 
-            if (isOff === true) {
+            if (isOff === true && observedAt) {
                 memoryDb.sessions.delete(tableId);
                 if (tableConfig) {
                     if (tableConfig.pending_maintenance_lock || tableConfig.lock_state === 'maintenance_locked') {
@@ -549,8 +565,7 @@ async function reconcileTableState(tableId, tableConfig, netio, isTestMode) {
                                 const { probeOutletOffMqtt } = require('./mqtt-cloud-bridge');
                                 const probeRes = await probeOutletOffMqtt({
                                     deviceSn,
-                                    targetOutletId,
-                                    timeoutMs: 5000
+                                    targetOutletId
                                 });
                                 if (probeRes.confirmedOff === true && probeRes.observedAt) {
                                     isOff = true;
@@ -1722,12 +1737,47 @@ async function activateSessionCore({
 
     // 2. Send command to NETIO hardware
     let netioResult;
+    const isMqttMode = (cfg?.switch_type === 'mqtt') || (process.env.MQTT_ENABLED === 'true');
     try {
-        netioResult = await netio.startTimedPlay(targetMinutes, targetOutputId, targetSeconds);
+        if (isMqttMode) {
+            const deviceSn = cfg?.device_serial || process.env.HIVEMQ_DEVICE_SN;
+            if (!deviceSn) {
+                throw new Error(`Device serial number missing for MQTT table '${table}'`);
+            }
+            const { dispatchTimedPlayMqtt } = require('./mqtt-cloud-bridge');
+            const mqttRes = await dispatchTimedPlayMqtt({
+                deviceSn,
+                durationSeconds: targetSeconds,
+                targetOutletId: targetOutputId,
+                attractOutletId: cfg?.lights_output_id || 3,
+                timeoutMs: process.env.TEST_DISPATCH_TIMEOUT_MS ? parseInt(process.env.TEST_DISPATCH_TIMEOUT_MS, 10) : 15000
+            });
+            if (mqttRes.success) {
+                netioResult = { success: true, mode: 'mqtt', observedAt: mqttRes.observedAt };
+            } else {
+                const dispatchErr = new Error(mqttRes.error || 'MQTT activation telemetry not received within deadline');
+                dispatchErr.code = mqttRes.code || 'TIMEOUT_NO_TELEMETRY';
+                throw dispatchErr;
+            }
+        } else {
+            netioResult = await netio.startTimedPlay(targetMinutes, targetOutputId, targetSeconds);
+        }
     } catch (netioErr) {
         let isRelayOff = false;
         try {
-            isRelayOff = await netio.verifyConfirmedOff(targetOutputId);
+            if (isMqttMode) {
+                const deviceSn = cfg?.device_serial || process.env.HIVEMQ_DEVICE_SN;
+                if (deviceSn) {
+                    const { probeOutletOffMqtt } = require('./mqtt-cloud-bridge');
+                    const probeRes = await probeOutletOffMqtt({
+                        deviceSn,
+                        targetOutletId: targetOutputId
+                    });
+                    isRelayOff = (probeRes.confirmedOff === true);
+                }
+            } else {
+                isRelayOff = await netio.verifyConfirmedOff(targetOutputId);
+            }
         } catch (probeErr) {}
 
         if (isRelayOff) {
@@ -2122,8 +2172,7 @@ async function claimAndActivateOrder({ orderId, paymentIntent, isFreePlay = fals
                         const { probeOutletOffMqtt } = require('./mqtt-cloud-bridge');
                         const probeRes = await probeOutletOffMqtt({
                             deviceSn,
-                            targetOutletId,
-                            timeoutMs: 5000
+                            targetOutletId
                         });
                         isConfirmedOff = (probeRes.confirmedOff === true);
                     } else {
