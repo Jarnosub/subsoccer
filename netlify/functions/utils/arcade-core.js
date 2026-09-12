@@ -3141,10 +3141,18 @@ async function syncAuxOutlets({ tableId, isTestMode = false, force = false, trig
         cfg._last_aux_states = {};
     }
 
+    const isMqttMode = (cfg.switch_type === 'mqtt') || (process.env.MQTT_ENABLED === 'true');
+    const deviceSn = cfg.device_serial || process.env.HIVEMQ_DEVICE_SN;
+
     // Execute Display command if needed
     if (displayOutputId && (force || cfg._last_aux_states.display !== targetDisplayState)) {
         try {
-            await netio.setOutletState(displayOutputId, targetDisplayState === 1);
+            if (isMqttMode && deviceSn && !isTestMode && !netio?.isMock) {
+                const { setAuxOutletMqtt } = require('./mqtt-cloud-bridge');
+                await setAuxOutletMqtt({ deviceSn, outletId: displayOutputId, action: targetDisplayState, timeoutMs: 5000 });
+            } else {
+                await netio.setOutletState(displayOutputId, targetDisplayState === 1);
+            }
             cfg._last_aux_states.display = targetDisplayState;
             results.display = { outputId: displayOutputId, state: targetDisplayState, success: true };
         } catch (dErr) {
@@ -3168,7 +3176,12 @@ async function syncAuxOutlets({ tableId, isTestMode = false, force = false, trig
     // Execute Lights command if needed
     if (lightsOutputId && (force || cfg._last_aux_states.lights !== targetLightsState)) {
         try {
-            await netio.setOutletState(lightsOutputId, targetLightsState === 1);
+            if (isMqttMode && deviceSn && !isTestMode && !netio?.isMock) {
+                const { setAuxOutletMqtt } = require('./mqtt-cloud-bridge');
+                await setAuxOutletMqtt({ deviceSn, outletId: lightsOutputId, action: targetLightsState, timeoutMs: 5000 });
+            } else {
+                await netio.setOutletState(lightsOutputId, targetLightsState === 1);
+            }
             cfg._last_aux_states.lights = targetLightsState;
             results.lights = { outputId: lightsOutputId, state: targetLightsState, success: true };
         } catch (lErr) {
