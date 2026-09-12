@@ -1884,6 +1884,68 @@ async function claimAndActivateOrder({ orderId, paymentIntent, isFreePlay = fals
         const durationMinutes = claimData.duration_minutes || explicitDurationMinutes || 5;
         const durationSeconds = claimData.duration_seconds || (durationMinutes * 60);
 
+        // Check if venue or table is configured for On-Site Gateway dispatch
+        const cfg = await getTableConfigAsync(effectiveTableId, isTestMode);
+        const venue = await getVenueAsync(claimData.venue_id || cfg?.venue_id, isTestMode);
+        const isGateway = Boolean((venue && venue.gateway_token_hash) || cfg?.switch_type === 'gateway');
+
+        if (isGateway && venue?.venue_id) {
+            let queueData = null;
+            let queueErr = null;
+            try {
+                const qRes = await sb.rpc('arcade_queue_gateway_command', {
+                    p_venue_id: venue.venue_id,
+                    p_table_id: effectiveTableId,
+                    p_order_id: orderId,
+                    p_duration_seconds: durationSeconds,
+                    p_dispatch_deadline_seconds: 15,
+                    p_target_outlet_id: cfg?.switch_output_id || 1
+                });
+                queueData = qRes.data;
+                queueErr = qRes.error;
+            } catch (qEx) {
+                queueErr = qEx;
+            }
+
+            if (queueErr || !queueData?.success) {
+                const errReason = queueErr ? queueErr.message : (queueData?.error || 'Failed to queue command for gateway');
+                console.error('[GATEWAY QUEUE ERROR] arcade_queue_gateway_command failed:', errReason);
+
+                try {
+                    await sb.from('arcade_orders').update({
+                        status: 'activation_failed',
+                        refund_status: isFree ? 'none' : 'refund_required',
+                        refund_reason: errReason,
+                        last_error_code: 'GATEWAY_QUEUE_FAILED',
+                        last_error_details: errReason,
+                        updated_at: new Date().toISOString()
+                    }).eq('order_id', orderId);
+
+                    await sb.from('arcade_table_configs').update({
+                        lock_state: 'error_locked',
+                        updated_at: new Date().toISOString()
+                    }).eq('table_id', effectiveTableId);
+                } catch (e) {}
+
+                return {
+                    success: false,
+                    statusCode: queueData?.statusCode || 500,
+                    code: queueData?.code || 'GATEWAY_QUEUE_FAILED',
+                    refundRequired: !isFree,
+                    error: `Komentojonon luonti epäonnistui: ${errReason}`
+                };
+            }
+
+            return {
+                success: true,
+                orderId,
+                status: 'pending_gateway_dispatch',
+                commandId: queueData.command_id,
+                dispatchDeadlineAt: queueData.dispatch_deadline_at,
+                durationSeconds
+            };
+        }
+
         // 2. Pre-dispatch guard: arcade_pre_dispatch_guard
         let guardData = null;
         let guardErr = null;
@@ -1927,8 +1989,7 @@ async function claimAndActivateOrder({ orderId, paymentIntent, isFreePlay = fals
         const sessionId = guardData.session_id;
         const expiresAt = guardData.expires_at;
 
-        // 3. Obtain table configuration & NETIO adapter
-        const cfg = await getTableConfigAsync(effectiveTableId, isTestMode);
+        // 3. Obtain NETIO adapter
         const netio = getNetioAdapter(cfg, isTestMode);
 
         if (!netio && !isTestMode) {
@@ -3133,6 +3194,57 @@ function resetMemoryDb() {
     memoryDb._simulateFinalizeTimeout = false;
 }
 
+async function executeStripeRefund(orderId) {
+    if (!orderId) return { success: false, error: 'Missing orderId' };
+    const sb = getSupabase();
+    const stripe = getStripeClient();
+    if (!sb) return { success: false, error: 'Database not available' };
+    if (!stripe) return { success: false, error: 'Stripe not configured' };
+
+    try {
+        const { data: order, error } = await sb
+            .from('arcade_orders')
+            .select('*')
+            .eq('order_id', orderId)
+            .maybeSingle();
+
+        if (error || !order) {
+            return { success: false, error: error?.message || `Order '${orderId}' not found` };
+        }
+
+        if (!order.stripe_payment_intent_id) {
+            return { success: false, error: `Order '${orderId}' has no stripe_payment_intent_id` };
+        }
+
+        // Idempotent refund call to Stripe
+        const ref = await stripe.refunds.create({
+            payment_intent: order.stripe_payment_intent_id,
+            reason: 'requested_by_customer',
+            metadata: { order_id: orderId, table_id: order.table_id }
+        }, {
+            idempotencyKey: `ref-${order.order_id}`
+        });
+
+        const newStatus = ref.status === 'succeeded' ? 'refund_completed' : 'refund_initiated';
+        await sb.from('arcade_orders').update({
+            refund_status: newStatus,
+            last_error_details: JSON.stringify({ refund_id: ref.id, amount: ref.amount, currency: ref.currency }),
+            updated_at: new Date().toISOString()
+        }).eq('order_id', order.order_id);
+
+        return {
+            success: true,
+            refundId: ref.id,
+            status: newStatus,
+            amount: ref.amount,
+            currency: ref.currency
+        };
+    } catch (err) {
+        console.error('[STRIPE REFUND ERROR] executeStripeRefund failed:', err.message);
+        return { success: false, error: err.message };
+    }
+}
+
 module.exports = {
     PRICE_CATALOG,
     ALLOWED_DURATIONS,
@@ -3159,6 +3271,7 @@ module.exports = {
     getSupabase,
     activateSessionCore,
     claimAndActivateOrder,
+    executeStripeRefund,
     getOrderStatus,
     getStripeClient,
     _setStripeClient,

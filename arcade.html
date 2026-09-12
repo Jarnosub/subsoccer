@@ -2277,6 +2277,9 @@
                         if (order.status === 'pending_activation') {
                             const desc = document.getElementById('startingDesc');
                             if (desc) desc.textContent = 'Maksu vastaanotettu. Käynnistetään NETIO-relettä...';
+                        } else if (order.status === 'pending_gateway_dispatch') {
+                            const desc = document.getElementById('startingDesc');
+                            if (desc) desc.textContent = 'Maksu vastaanotettu. Käynnistetään pöytää...';
                         }
                     } else if (data.state === 'active' && data.expiresAt) {
                         const remaining = Math.max(0, Math.round((new Date(data.expiresAt).getTime() - Date.now()) / 1000));

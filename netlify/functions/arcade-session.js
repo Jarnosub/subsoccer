@@ -46,6 +46,7 @@ const {
     createFreePlayHold,
     setTableMaintenance,
     claimAndActivateOrder,
+    executeStripeRefund,
     getOrderStatus,
     getTableConfigAsync,
     getVenueAsync,
@@ -978,6 +979,50 @@ exports.handler = async function (event, context) {
                         pendingMaintenanceLock: Boolean(res.pending_maintenance_lock),
                         isDeferred: Boolean(res.is_deferred),
                         message: res.message
+                    })
+                };
+            }
+
+            // ─── ACTION: PROCESS REFUND (Staff / Moderator) ───
+            if (action === 'process-refund') {
+                const auth = await authenticateModerator(event, body, table, isTestMode);
+                if (!auth.ok) {
+                    return {
+                        statusCode: auth.statusCode,
+                        headers: CORS_HEADERS,
+                        body: JSON.stringify({ error: auth.error, code: auth.code })
+                    };
+                }
+
+                const orderId = (body.orderId || '').trim();
+                if (!orderId) {
+                    return {
+                        statusCode: 400,
+                        headers: CORS_HEADERS,
+                        body: JSON.stringify({ error: 'Missing orderId parameter', code: 'MISSING_ORDER_ID' })
+                    };
+                }
+
+                const refRes = await executeStripeRefund(orderId);
+                if (!refRes.success) {
+                    return {
+                        statusCode: 500,
+                        headers: CORS_HEADERS,
+                        body: JSON.stringify({ error: refRes.error, code: 'REFUND_FAILED' })
+                    };
+                }
+
+                return {
+                    statusCode: 200,
+                    headers: CORS_HEADERS,
+                    body: JSON.stringify({
+                        success: true,
+                        action: 'process-refund',
+                        orderId,
+                        refundId: refRes.refundId,
+                        status: refRes.status,
+                        amount: refRes.amount,
+                        currency: refRes.currency
                     })
                 };
             }
