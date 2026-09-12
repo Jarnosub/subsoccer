@@ -328,7 +328,7 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
             expect(client).toBeDefined();
 
             // Simulate incoming telemetry marked as retained
-            client.simulateMessage('subsoccer/test-TEST-NETIO-SN/status', {
+            client.simulateMessage('subsoccer/TEST-NETIO-SN/status', {
                 Time: new Date().toISOString(),
                 Outputs: [{ ID: 1, State: 1 }]
             }, { retain: true });
@@ -343,7 +343,7 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
             const client = activeClients[0];
 
             // Send message BEFORE publish ACK is recorded
-            client.simulateMessage('subsoccer/test-TEST-NETIO-SN/status', {
+            client.simulateMessage('subsoccer/TEST-NETIO-SN/status', {
                 Time: new Date().toISOString(),
                 Outputs: [{ ID: 1, State: 1 }]
             }, { retain: false });
@@ -361,7 +361,7 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
 
             // Device timestamp from 2 seconds before command publish
             const staleTime = new Date(Date.now() - 2000).toISOString();
-            client.simulateMessage('subsoccer/test-TEST-NETIO-SN/status', {
+            client.simulateMessage('subsoccer/TEST-NETIO-SN/status', {
                 Time: staleTime,
                 Outputs: [{ ID: 1, State: 1, Action: 6 }]
             }, { retain: false });
@@ -377,7 +377,7 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
             await new Promise(r => setTimeout(r, 20));
             const client = activeClients[0];
 
-            client.simulateMessage('subsoccer/test-TEST-NETIO-SN/status', {
+            client.simulateMessage('subsoccer/TEST-NETIO-SN/status', {
                 Time: 'invalid-not-a-date',
                 Outputs: [{ ID: 1, State: 1, Action: 6 }]
             }, { retain: false });
@@ -394,7 +394,7 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
             const client = activeClients[0];
 
             // Pure Outputs array without Time field
-            client.simulateMessage('subsoccer/test-TEST-NETIO-SN/status', {
+            client.simulateMessage('subsoccer/TEST-NETIO-SN/status', {
                 Outputs: [{ ID: 1, State: 1, Action: 6 }]
             }, { retain: false });
 
@@ -411,7 +411,7 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
 
             // Future timestamp: 1 hour in the future
             const futureTime = new Date(Date.now() + 3600000).toISOString();
-            client.simulateMessage('subsoccer/test-TEST-NETIO-SN/status', {
+            client.simulateMessage('subsoccer/TEST-NETIO-SN/status', {
                 Time: futureTime,
                 Outputs: [{ ID: 1, State: 1, Action: 6 }]
             }, { retain: false });
@@ -429,7 +429,7 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
 
             // Fresh device timestamp (now)
             const nowIso = new Date().toISOString();
-            client.simulateMessage('subsoccer/test-TEST-NETIO-SN/status', {
+            client.simulateMessage('subsoccer/TEST-NETIO-SN/status', {
                 Time: nowIso,
                 Outputs: [
                     { ID: 1, State: 1, Action: 6, Delay: 0 },
@@ -471,7 +471,7 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
             const client = activeClients[0];
 
             const deviceTime = new Date().toISOString();
-            client.simulateMessage('subsoccer/test-TEST-NETIO-SN/status', {
+            client.simulateMessage('subsoccer/TEST-NETIO-SN/status', {
                 Time: deviceTime,
                 Outputs: [
                     { ID: 1, State: 0, Action: 6, Delay: 0 },
@@ -494,7 +494,7 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
 
             // Device timestamp from 2 seconds before probe was initiated
             const preProbeTime = new Date(Date.now() - 2000).toISOString();
-            client.simulateMessage('subsoccer/test-TEST-NETIO-SN/status', {
+            client.simulateMessage('subsoccer/TEST-NETIO-SN/status', {
                 Time: preProbeTime,
                 Outputs: [{ ID: 1, State: 0, Action: 6, Delay: 0 }]
             }, { retain: false });
@@ -510,7 +510,7 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
             await new Promise(r => setTimeout(r, 20));
             const client = activeClients[0];
 
-            client.simulateMessage('subsoccer/test-TEST-NETIO-SN/status', {
+            client.simulateMessage('subsoccer/TEST-NETIO-SN/status', {
                 Time: 'invalid-not-a-date',
                 Outputs: [{ ID: 1, State: 0, Action: 6, Delay: 0 }]
             }, { retain: false });
@@ -527,7 +527,7 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
             const client = activeClients[0];
 
             // Telemetry has no timestamp
-            client.simulateMessage('subsoccer/test-TEST-NETIO-SN/status', {
+            client.simulateMessage('subsoccer/TEST-NETIO-SN/status', {
                 Outputs: [{ ID: 1, State: 0, Action: 6, Delay: 0 }]
             }, { retain: false });
 
@@ -544,7 +544,7 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
 
             // Timestamp 1 hour ahead in the future
             const futureTime = new Date(Date.now() + 3600000).toISOString();
-            client.simulateMessage('subsoccer/test-TEST-NETIO-SN/status', {
+            client.simulateMessage('subsoccer/TEST-NETIO-SN/status', {
                 Time: futureTime,
                 Outputs: [{ ID: 1, State: 0, Action: 6, Delay: 0 }]
             }, { retain: false });
@@ -560,7 +560,7 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
             await new Promise(r => setTimeout(r, 30));
             const client = activeClients[0];
 
-            client.simulateMessage('subsoccer/test-TEST-NETIO-SN/status', {
+            client.simulateMessage('subsoccer/TEST-NETIO-SN/status', {
                 Time: new Date().toISOString(),
                 Outputs: [
                     { ID: 1, State: 1, Action: 6, Delay: 0 }
@@ -657,7 +657,7 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
             await new Promise(r => setTimeout(r, 40));
             const client = activeClients.find(c => c.prefix === 'probe');
             if (client) {
-                client.simulateMessage('subsoccer/test-TEST-NETIO-SN/status', {
+                client.simulateMessage('subsoccer/TEST-NETIO-SN/status', {
                     Time: new Date().toISOString(),
                     Outputs: [{ ID: 1, State: 0, Action: 6, Delay: 0 }]
                 }, { retain: false });
@@ -687,7 +687,7 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
             await new Promise(r => setTimeout(r, 40));
             const client = activeClients.find(c => c.prefix === 'probe');
             if (client) {
-                client.simulateMessage('subsoccer/test-TEST-NETIO-SN/status', {
+                client.simulateMessage('subsoccer/TEST-NETIO-SN/status', {
                     Time: new Date().toISOString(),
                     Outputs: [{ ID: 1, State: 0, Action: 6, Delay: 0 }]
                 }, { retain: false });
@@ -761,7 +761,7 @@ describe('Subsoccer Arcade: NETIO PowerBOX 3PF Strict MQTT Safety & Reconciliati
             const dispatchClient = activeClients.find(c => c.prefix === 'dispatch');
             expect(dispatchClient).toBeDefined();
 
-            dispatchClient.simulateMessage('subsoccer/test-TEST-NETIO-SN/status', {
+            dispatchClient.simulateMessage('subsoccer/TEST-NETIO-SN/status', {
                 Time: new Date().toISOString(),
                 Outputs: [
                     { ID: 1, State: 1, Action: 6, Delay: 0 },

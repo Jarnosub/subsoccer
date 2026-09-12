@@ -55,8 +55,24 @@ function getMqttConfig(overrides = {}) {
         username: overrides.username || process.env.HIVEMQ_USERNAME || process.env.MQTT_USERNAME || '',
         password: overrides.password || process.env.HIVEMQ_PASSWORD || process.env.MQTT_PASSWORD || '',
         deviceSn: overrides.deviceSn || process.env.HIVEMQ_DEVICE_SN || process.env.NETIO_SERIAL || '',
-        topicPrefix: (overrides.topicPrefix || process.env.MQTT_TOPIC_PREFIX || 'subsoccer/test').trim(),
+        topicPrefix: (overrides.topicPrefix || process.env.MQTT_TOPIC_PREFIX || 'subsoccer').trim(),
         allowInsecure: Boolean(overrides.allowInsecure)
+    };
+}
+
+/**
+ * Resolve standard MQTT topics for a device: subsoccer/<SN>/cmd and subsoccer/<SN>/status.
+ * @param {Object} config
+ * @returns {{ cmd: string, status: string, event: string }}
+ */
+function getDeviceTopics(config) {
+    const rawPrefix = (config.topicPrefix || 'subsoccer').trim();
+    const sn = config.deviceSn;
+    const base = rawPrefix.endsWith('-') || rawPrefix.endsWith('/') ? `${rawPrefix}${sn}` : `${rawPrefix}/${sn}`;
+    return {
+        cmd: `${base}/cmd`,
+        status: `${base}/status`,
+        event: `${base}/event`
     };
 }
 
@@ -297,9 +313,9 @@ async function dispatchTimedPlayMqtt({
             });
         }
 
-        const sn = config.deviceSn;
-        const topicCmd = `${config.topicPrefix}-${sn}/cmd`;
-        const topicStatus = `${config.topicPrefix}-${sn}/status`;
+        const topics = getDeviceTopics(config);
+        const topicCmd = topics.cmd;
+        const topicStatus = topics.status;
 
         const delayMs = Math.round(durationSeconds * 1000);
         const payloadCmd = JSON.stringify({
@@ -472,9 +488,9 @@ async function probeOutletOffMqtt({
             });
         }
 
-        const sn = config.deviceSn;
-        const topicCmd = `${config.topicPrefix}-${sn}/cmd`;
-        const topicStatus = `${config.topicPrefix}-${sn}/status`;
+        const topics = getDeviceTopics(config);
+        const topicCmd = topics.cmd;
+        const topicStatus = topics.status;
         const probeStartedAt = Date.now();
 
         let client = null;
@@ -604,9 +620,9 @@ async function setAuxOutletMqtt({
     const config = getMqttConfig({ deviceSn });
     validateMqttConfig(config, { requireDeviceSn: true });
 
-    const sn = config.deviceSn;
-    const topicCmd = `${config.topicPrefix}-${sn}/cmd`;
-    const topicStatus = `${config.topicPrefix}-${sn}/status`;
+    const topics = getDeviceTopics(config);
+    const topicCmd = topics.cmd;
+    const topicStatus = topics.status;
     const startedAt = Date.now();
 
     const payload = JSON.stringify({
@@ -632,54 +648,70 @@ async function setAuxOutletMqtt({
         };
 
         const timer = setTimeout(() => {
-            finish({ success: false, reason: 'TIMEOUT_NO_CONFIRMATION' });
+            console.warn(`[MQTT BRIDGE] setAuxOutletMqtt timed out after ${timeoutMs}ms waiting for confirmation.`);
+            finish({
+                success: false,
+                code: 'TIMEOUT_NO_TELEMETRY',
+                error: `NETIO did not publish auxiliary outlet confirmation within deadline`
+            });
         }, timeoutMs);
 
         try {
             client = createMqttClient(config, 'aux');
-        } catch (e) {
-            return finish({ success: false, reason: e.message });
-        }
 
-        client.on('error', (err) => finish({ success: false, reason: err.message }));
-
-        client.on('connect', () => {
-            client.subscribe(topicStatus, { qos: 0 }, (err) => {
-                if (err) return finish({ success: false, reason: err.message });
-                client.publish(topicCmd, payload, { qos: 0, retain: false });
+            client.on('error', (err) => {
+                console.error('[MQTT BRIDGE] MQTT Client Error during aux control:', err);
+                finish({ success: false, code: 'MQTT_ERROR', error: err.message });
             });
-        });
 
-        client.on('message', (topic, msgBuffer, packet) => {
-            if (topic !== topicStatus || (packet && packet.retain)) return;
-            const parsed = parseNetioOutputsTelemetry(msgBuffer);
-            if (!parsed || !parsed.outputs || !parsed.hasValidTimestamp || parsed.deviceTimeMs === null) return;
-            if (parsed.deviceTimeMs < startedAt) return;
-            if (parsed.deviceTimeMs > (Date.now() + MAX_FUTURE_SKEW_MS)) return;
-            const target = parsed.outputs.find(o => o.ID === outletId);
-            if (target && target.State === action) {
-                finish({ success: true, state: target.State, observedAt: parsed.deviceTime });
-            }
-        });
+            client.on('connect', () => {
+                client.subscribe(topicStatus, { qos: 1 }, (subErr) => {
+                    if (subErr) {
+                        return finish({ success: false, code: 'SUBSCRIBE_ERROR', error: subErr.message });
+                    }
+
+                    client.publish(topicCmd, payload, { qos: 1 }, (pubErr) => {
+                        if (pubErr) {
+                            return finish({ success: false, code: 'PUBLISH_ERROR', error: pubErr.message });
+                        }
+                    });
+                });
+            });
+
+            client.on('message', (topic, msgBuffer, packet) => {
+                if (topic !== topicStatus) return;
+                if (packet && packet.retain) return;
+
+                const parsed = parseNetioOutputsTelemetry(msgBuffer);
+                if (!parsed || !parsed.hasValidTimestamp || parsed.deviceTimeMs === null) return;
+                if (parsed.deviceTimeMs < startedAt) return;
+                if (parsed.deviceTimeMs > (Date.now() + MAX_FUTURE_SKEW_MS)) return;
+
+                const targetOutput = parsed.outputs.find(o => o.ID === outletId);
+                const expectedState = action === 1 ? 1 : 0;
+                if (targetOutput && targetOutput.State === expectedState) {
+                    finish({
+                        success: true,
+                        observedAt: parsed.deviceTime,
+                        rawTelemetry: parsed.outputs
+                    });
+                }
+            });
+        } catch (err) {
+            finish({ success: false, code: 'CLIENT_ERROR', error: err.message });
+        }
     });
 }
 
 /**
- * Publish maintenance event string ("maintenance" or "normal")
- * 
- * @param {Object} options
- * @param {string} [options.deviceSn]
- * @param {boolean} options.isMaintenance
+ * Publish table maintenance / error event to MQTT broker.
  */
-async function setMaintenanceEventMqtt({
-    deviceSn,
-    isMaintenance
-}) {
+async function setMaintenanceEventMqtt({ deviceSn, isMaintenance = true, timeoutMs = 5000 }) {
     const config = getMqttConfig({ deviceSn });
     validateMqttConfig(config, { requireDeviceSn: true });
 
-    const sn = config.deviceSn;
-    const topicEvent = `${config.topicPrefix}-${sn}/event`;
+    const topics = getDeviceTopics(config);
+    const topicEvent = topics.event;
     const eventString = isMaintenance ? 'maintenance' : 'normal';
 
     return new Promise((resolve) => {
@@ -724,6 +756,7 @@ async function setMaintenanceEventMqtt({
 module.exports = {
     getMqttConfig,
     validateMqttConfig,
+    getDeviceTopics,
     parseNetioOutputsTelemetry,
     createMqttClient,
     dispatchTimedPlayMqtt,
