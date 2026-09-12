@@ -2164,6 +2164,13 @@ async function claimAndActivateOrder({ orderId, paymentIntent, isFreePlay = fals
             });
         } catch (e) {}
 
+        // 7. Synchronize auxiliary outlets (Display ON, Lights OFF during active game)
+        try {
+            await syncAuxOutlets({ tableId: effectiveTableId, isTestMode, trigger: 'game_activated' });
+        } catch (e) {
+            console.warn('[AUX OUTLETS WARNING] Failed to sync aux outlets after game activation:', e.message);
+        }
+
         return {
             success: true,
             orderId,
