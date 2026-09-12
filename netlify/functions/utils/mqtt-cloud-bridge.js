@@ -32,8 +32,8 @@
 
 const mqtt = require('mqtt');
 
-// Clock skew tolerance for embedded IoT device RTC/NTP vs cloud server (60 seconds)
-const CLOCK_SKEW_TOLERANCE_MS = 60000;
+// Allow slight positive clock delta for network transit / clock jitter into future (5s max)
+const MAX_FUTURE_SKEW_MS = 5000;
 
 let _clientFactory = null;
 
@@ -117,12 +117,52 @@ function parseNetioOutputsTelemetry(msgBuffer) {
 
     let deviceTime = null;
     let deviceTimeMs = null;
-    const rawTime = data.Time || data.time || data.timestamp || (data.Agent && (data.Agent.Time || data.Agent.time));
-    if (rawTime) {
-        const parsedMs = Date.parse(rawTime);
-        if (!isNaN(parsedMs)) {
-            deviceTime = new Date(parsedMs).toISOString();
-            deviceTimeMs = parsedMs;
+    let hasValidTimestamp = false;
+
+    const rawTime = data.Time ?? data.time ?? data.timestamp ?? (data.Agent && (data.Agent.Time ?? data.Agent.time ?? data.Agent.timestamp));
+    if (rawTime !== undefined && rawTime !== null && rawTime !== '') {
+        if (typeof rawTime === 'number' && Number.isFinite(rawTime) && rawTime > 0) {
+            // Unix epoch: if seconds (< 1e11), convert to ms
+            const ms = rawTime < 1e11 ? Math.round(rawTime * 1000) : Math.round(rawTime);
+            deviceTime = new Date(ms).toISOString();
+            deviceTimeMs = ms;
+            hasValidTimestamp = true;
+        } else if (typeof rawTime === 'string') {
+            const trimmed = rawTime.trim();
+            if (/^\d{9,13}$/.test(trimmed)) {
+                const num = Number(trimmed);
+                const ms = num < 1e11 ? num * 1000 : num;
+                deviceTime = new Date(ms).toISOString();
+                deviceTimeMs = ms;
+                hasValidTimestamp = true;
+            } else {
+                const parsedMs = Date.parse(trimmed);
+                if (!isNaN(parsedMs) && Number.isFinite(parsedMs)) {
+                    deviceTime = new Date(parsedMs).toISOString();
+                    deviceTimeMs = parsedMs;
+                    hasValidTimestamp = true;
+                }
+            }
+        }
+    }
+
+    if (!hasValidTimestamp && outputs && outputs.length > 0 && outputs[0] && typeof outputs[0] === 'object') {
+        const outTime = outputs[0].Time ?? outputs[0].time ?? outputs[0].timestamp;
+        if (outTime !== undefined && outTime !== null && outTime !== '') {
+            if (typeof outTime === 'number' && Number.isFinite(outTime) && outTime > 0) {
+                const ms = outTime < 1e11 ? Math.round(outTime * 1000) : Math.round(outTime);
+                deviceTime = new Date(ms).toISOString();
+                deviceTimeMs = ms;
+                hasValidTimestamp = true;
+            } else if (typeof outTime === 'string') {
+                const trimmed = outTime.trim();
+                const parsedMs = Date.parse(trimmed);
+                if (!isNaN(parsedMs) && Number.isFinite(parsedMs)) {
+                    deviceTime = new Date(parsedMs).toISOString();
+                    deviceTimeMs = parsedMs;
+                    hasValidTimestamp = true;
+                }
+            }
         }
     }
 
@@ -180,7 +220,8 @@ function parseNetioOutputsTelemetry(msgBuffer) {
     return {
         outputs: parsedOutputs,
         deviceTime,
-        deviceTimeMs
+        deviceTimeMs,
+        hasValidTimestamp
     };
 }
 
@@ -353,9 +394,21 @@ async function dispatchTimedPlayMqtt({
             const parsed = parseNetioOutputsTelemetry(msgBuffer);
             if (!parsed || !parsed.outputs || parsed.outputs.length === 0) return;
 
-            // Device timestamp freshness check: if device provided a timestamp, verify it is within allowable clock skew
-            if (parsed.deviceTimeMs !== null && parsed.deviceTimeMs < (commandPublishedAt - CLOCK_SKEW_TOLERANCE_MS)) {
-                console.log(`[MQTT BRIDGE] Discarding stale device timestamp: ${parsed.deviceTime} (command was at ${new Date(commandPublishedAt).toISOString()})`);
+            // Strict timestamp validation: must have valid device timestamp
+            if (!parsed.hasValidTimestamp || parsed.deviceTimeMs === null) {
+                console.log('[MQTT BRIDGE] Discarding telemetry: missing or invalid device timestamp.');
+                return;
+            }
+
+            // Delayed message rejection: must not have been generated before command publish
+            if (parsed.deviceTimeMs < commandPublishedAt) {
+                console.log(`[MQTT BRIDGE] Discarding delayed telemetry: deviceTime (${parsed.deviceTime}) < commandPublishedAt (${new Date(commandPublishedAt).toISOString()})`);
+                return;
+            }
+
+            // Future timestamp rejection: cannot be in the future beyond server tolerance
+            if (parsed.deviceTimeMs > (Date.now() + MAX_FUTURE_SKEW_MS)) {
+                console.log(`[MQTT BRIDGE] Discarding future timestamp: deviceTime (${parsed.deviceTime}) is in the future.`);
                 return;
             }
 
@@ -367,7 +420,7 @@ async function dispatchTimedPlayMqtt({
                 console.log(`[MQTT BRIDGE] Verified Output ${targetOutletId} is ACTIVE (State: 1, Action: ${targetOutput.Action ?? 'none'})!`);
                 finish({
                     success: true,
-                    observedAt: parsed.deviceTime || new Date().toISOString(),
+                    observedAt: parsed.deviceTime,
                     rawTelemetry: parsed.outputs
                 });
             }
@@ -489,9 +542,21 @@ async function probeOutletOffMqtt({
             const parsed = parseNetioOutputsTelemetry(msgBuffer);
             if (!parsed || !parsed.outputs || parsed.outputs.length === 0) return;
 
-            // Device timestamp freshness check: if device provided a timestamp, verify it is within allowable clock skew
-            if (parsed.deviceTimeMs !== null && parsed.deviceTimeMs < (probeStartedAt - CLOCK_SKEW_TOLERANCE_MS)) {
-                console.log(`[MQTT PROBE] Discarding stale device timestamp in probe: ${parsed.deviceTime} (probe started at ${new Date(probeStartedAt).toISOString()})`);
+            // Strict timestamp validation: must have valid device timestamp
+            if (!parsed.hasValidTimestamp || parsed.deviceTimeMs === null) {
+                console.log('[MQTT PROBE] Discarding probe telemetry: missing or invalid device timestamp.');
+                return;
+            }
+
+            // Delayed OFF message rejection: must not have been generated before probe was initiated
+            if (parsed.deviceTimeMs < probeStartedAt) {
+                console.log(`[MQTT PROBE] Discarding delayed OFF telemetry: deviceTime (${parsed.deviceTime}) < probeStartedAt (${new Date(probeStartedAt).toISOString()})`);
+                return;
+            }
+
+            // Future timestamp rejection: cannot be in the future beyond server tolerance
+            if (parsed.deviceTimeMs > (Date.now() + MAX_FUTURE_SKEW_MS)) {
+                console.log(`[MQTT PROBE] Discarding future timestamp in probe: deviceTime (${parsed.deviceTime}) is in the future.`);
                 return;
             }
 
@@ -503,7 +568,7 @@ async function probeOutletOffMqtt({
                     confirmedOff: isOff,
                     state: targetOutput.State,
                     roundtripMs,
-                    observedAt: parsed.deviceTime || new Date().toISOString(),
+                    observedAt: parsed.deviceTime,
                     reason: isOff ? 'CONFIRMED_OFF' : 'OUTLET_STILL_ON'
                 });
             }
@@ -581,12 +646,13 @@ async function setAuxOutletMqtt({
 
         client.on('message', (topic, msgBuffer, packet) => {
             if (topic !== topicStatus || (packet && packet.retain)) return;
-            if (Date.now() < startedAt) return;
             const parsed = parseNetioOutputsTelemetry(msgBuffer);
-            if (!parsed || !parsed.outputs) return;
+            if (!parsed || !parsed.outputs || !parsed.hasValidTimestamp || parsed.deviceTimeMs === null) return;
+            if (parsed.deviceTimeMs < startedAt) return;
+            if (parsed.deviceTimeMs > (Date.now() + MAX_FUTURE_SKEW_MS)) return;
             const target = parsed.outputs.find(o => o.ID === outletId);
             if (target && target.State === action) {
-                finish({ success: true, state: target.State, observedAt: parsed.deviceTime || new Date().toISOString() });
+                finish({ success: true, state: target.State, observedAt: parsed.deviceTime });
             }
         });
     });
