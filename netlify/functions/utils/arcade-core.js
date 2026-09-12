@@ -2441,7 +2441,10 @@ function getSessionSecret(isTestMode) {
 }
 
 function computeCallerHash(venueId, callerIdentifier, clientIp) {
-    const raw = `${venueId || 'unknown'}:${callerIdentifier || 'anonymous'}:${clientIp || 'unknown'}`;
+    // Ankkuroi ensisijaisesti todelliseen asiakas-IP-osoitteeseen,
+    // jotta selaimen fingerprintin vaihtaminen ei nollaa yrityslaskuria saman IP:n sisällä.
+    const anchor = (clientIp && clientIp !== 'unknown') ? clientIp : (callerIdentifier || 'anonymous');
+    const raw = `${venueId || 'unknown'}:${anchor}`;
     return crypto.createHash('sha256').update(raw).digest('hex');
 }
 
@@ -2542,17 +2545,6 @@ async function verifyVenuePin({ tableId, pin, callerHash, isTestMode }) {
         return { success: false, statusCode: 404, code: 'VENUE_NOT_FOUND', error: 'Toimipaikkaa ei löydy.' };
     }
 
-    // Check venue global lockout
-    if (venue.venue_locked_until && venue.venue_locked_until > Date.now()) {
-        return {
-            success: false,
-            statusCode: 429,
-            code: 'VENUE_LOCKED_OUT',
-            locked_until: new Date(venue.venue_locked_until).toISOString(),
-            error: 'Toimipaikan kirjautuminen on tilapäisesti estetty järjestelmätason suojalukituksella. Ota yhteys ylläpitoon.'
-        };
-    }
-
     if (!venue.pin_hash) {
         return {
             success: false,
@@ -2618,9 +2610,6 @@ async function verifyVenuePin({ tableId, pin, callerHash, isTestMode }) {
         }
 
         venue.venue_failed_attempts += 1;
-        if (venue.venue_failed_attempts >= 25) {
-            venue.venue_locked_until = Date.now() + 30 * 60 * 1000;
-        }
 
         memoryDb.events.push({
             table_id: tableId,
@@ -2630,11 +2619,30 @@ async function verifyVenuePin({ tableId, pin, callerHash, isTestMode }) {
                 auth_method: 'shared_venue_pin',
                 caller_failed_attempts: caller.failed_attempts,
                 caller_locked: caller.failed_attempts >= 5,
-                venue_failed_attempts: venue.venue_failed_attempts,
-                venue_locked: venue.venue_failed_attempts >= 25
+                venue_failed_attempts: venue.venue_failed_attempts
             },
             created_at: new Date().toISOString()
         });
+
+        // Koko toimipaikan lukitsemisen sijaan korkeasta virhemäärästä (>= 25) kirjataan hälytys,
+        // jotta ulkopuolinen hyökkääjä ei voi tahallisesti estää henkilökunnan pääsyä oikealla PINillä.
+        if (venue.venue_failed_attempts >= 25) {
+            memoryDb.events.push({
+                table_id: tableId,
+                venue_id: venueId,
+                event_type: 'venue_pin_abuse_alert',
+                payload: {
+                    auth_method: 'shared_venue_pin',
+                    venue_id: venueId,
+                    table_id: tableId,
+                    caller_hash: callerHash,
+                    venue_failed_attempts: venue.venue_failed_attempts,
+                    severity: 'warning',
+                    alert: 'Poikkeuksellisen korkea määrä epäonnistuneita PIN-yrityksiä toimipaikalla. Mahdollinen brute-force tai DoS-yritys.'
+                },
+                created_at: new Date().toISOString()
+            });
+        }
 
         if (caller.failed_attempts >= 5) {
             return {

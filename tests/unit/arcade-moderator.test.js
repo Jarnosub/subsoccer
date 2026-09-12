@@ -244,7 +244,7 @@ describe('Subsoccer Arcade Phase 1: Moderator & Maintenance Mode', () => {
             assert.strictEqual(callerBBody.success, true);
         });
 
-        it('triggers venue-wide lockout after 25 failures across callers, blocking all until reset', async () => {
+        it('triggers venue abuse alert after 25 failures across callers while still allowing staff with correct PIN to authenticate', async () => {
             await setVenuePin({ venueId: 'venue-demo-01', newPin: '1234', isTestMode: true });
 
             // Generate 25 failures across different IPs / callers
@@ -261,22 +261,28 @@ describe('Subsoccer Arcade Phase 1: Moderator & Maintenance Mode', () => {
                 }, {});
             }
 
-            // Venue is now locked out: even a new caller with the CORRECT PIN gets 429 VENUE_LOCKED_OUT
-            const venueLockedRes = await sessionHandler({
+            // Verify abuse alert event was recorded in telemetry
+            const alertEvent = memoryDb.events.find(e => e.event_type === 'venue_pin_abuse_alert');
+            assert.ok(alertEvent, 'Expected venue_pin_abuse_alert event');
+            assert.strictEqual(alertEvent.payload.venue_id, 'venue-demo-01');
+
+            // CRITICAL REQUIREMENT: Venue is NOT locked out! Staff entering the CORRECT PIN succeeds with 200
+            const staffRes = await sessionHandler({
                 httpMethod: 'POST',
                 headers: { 'x-forwarded-for': '10.0.1.99' },
                 body: JSON.stringify({
                     action: 'staff-pin-login',
                     table: 'demo-pulse-01',
                     pin: '1234',
-                    clientFingerprint: 'fp-clean'
+                    clientFingerprint: 'device-legitimate-staff'
                 })
             }, {});
-            assert.strictEqual(venueLockedRes.statusCode, 429);
-            const body = JSON.parse(venueLockedRes.body);
-            assert.strictEqual(body.code, 'VENUE_LOCKED_OUT');
+            assert.strictEqual(staffRes.statusCode, 200);
+            const body = JSON.parse(staffRes.body);
+            assert.strictEqual(body.success, true);
+            assert.ok(body.token);
 
-            // Superadmin unlocks the venue via reset-venue-lockout
+            // Superadmin can also reset venue failure counters via reset-venue-lockout
             const resetRes = await sessionHandler({
                 httpMethod: 'POST',
                 headers: { 'x-admin-token': 'test-admin-secret-token' },
@@ -286,19 +292,6 @@ describe('Subsoccer Arcade Phase 1: Moderator & Maintenance Mode', () => {
                 })
             }, {});
             assert.strictEqual(resetRes.statusCode, 200);
-
-            // Now clean caller can authenticate
-            const recoveredRes = await sessionHandler({
-                httpMethod: 'POST',
-                headers: { 'x-forwarded-for': '10.0.1.99' },
-                body: JSON.stringify({
-                    action: 'staff-pin-login',
-                    table: 'demo-pulse-01',
-                    pin: '1234',
-                    clientFingerprint: 'fp-clean'
-                })
-            }, {});
-            assert.strictEqual(recoveredRes.statusCode, 200);
         });
 
         it('revokes previously issued sessions immediately upon PIN rotation (SESSION_REVOKED)', async () => {

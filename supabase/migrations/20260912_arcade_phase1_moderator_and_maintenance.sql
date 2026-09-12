@@ -48,6 +48,18 @@ CREATE TABLE IF NOT EXISTS public.arcade_pin_attempts (
 CREATE INDEX IF NOT EXISTS idx_arcade_pin_attempts_lookup 
 ON public.arcade_pin_attempts(venue_id, caller_hash);
 
+-- RLS-suojaus (vain service_role pääsee käsiksi PIN-tauluihin)
+ALTER TABLE public.arcade_venues ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.arcade_pin_attempts ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "service_role_manage_venues" ON public.arcade_venues;
+CREATE POLICY "service_role_manage_venues" ON public.arcade_venues
+    FOR ALL TO service_role USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "service_role_manage_pin_attempts" ON public.arcade_pin_attempts;
+CREATE POLICY "service_role_manage_pin_attempts" ON public.arcade_pin_attempts
+    FOR ALL TO service_role USING (true) WITH CHECK (true);
+
 -- Pöytäasetukset: toimipaikkaviite ja huoltolippu
 ALTER TABLE IF EXISTS public.arcade_table_configs 
     ADD COLUMN IF NOT EXISTS venue_id TEXT REFERENCES public.arcade_venues(venue_id);
@@ -125,19 +137,7 @@ BEGIN
         RETURN jsonb_build_object('success', false, 'code', 'VENUE_NOT_FOUND', 'statusCode', 404, 'error', 'Toimipaikkaa ei löydy.');
     END IF;
 
-    -- 3. Tarkista toimipaikkatason suojalukko (esim. 25 yrityksen DoS-suoja)
-    IF v_venue.venue_locked_until IS NOT NULL AND v_venue.venue_locked_until > now() THEN
-        RETURN jsonb_build_object(
-            'success', false,
-            'code', 'VENUE_LOCKED_OUT',
-            'statusCode', 429,
-            'locked_until', v_venue.venue_locked_until,
-            'seconds_remaining', ceil(extract(epoch from (v_venue.venue_locked_until - now()))),
-            'error', 'Toimipaikan kirjautuminen on tilapäisesti estetty järjestelmätason suojalukituksella. Ota yhteys ylläpitoon.'
-        );
-    END IF;
-
-    -- 4. Tarkista onko PIN asetettu toimipaikalle
+    -- 3. Tarkista onko PIN asetettu toimipaikalle
     IF v_venue.pin_hash IS NULL OR trim(v_venue.pin_hash) = '' THEN
         RETURN jsonb_build_object(
             'success', false,
@@ -213,13 +213,9 @@ BEGIN
 
         -- Kasvata toimipaikan globaalia laskuria
         v_venue.venue_failed_attempts := v_venue.venue_failed_attempts + 1;
-        IF v_venue.venue_failed_attempts >= 25 THEN
-            v_venue.venue_locked_until := now() + interval '30 minutes';
-        END IF;
 
         UPDATE public.arcade_venues
         SET venue_failed_attempts = v_venue.venue_failed_attempts,
-            venue_locked_until = v_venue.venue_locked_until,
             updated_at = now()
         WHERE venue_id = v_venue.venue_id;
 
@@ -228,9 +224,23 @@ BEGIN
             'auth_method', 'shared_venue_pin',
             'caller_failed_attempts', v_caller.failed_attempts,
             'caller_locked', (v_caller.failed_attempts >= 5),
-            'venue_failed_attempts', v_venue.venue_failed_attempts,
-            'venue_locked', (v_venue.venue_failed_attempts >= 25)
+            'venue_failed_attempts', v_venue.venue_failed_attempts
         ));
+
+        -- Koko toimipaikan lukitsemisen sijaan korkeasta virhemäärästä (>= 25) kirjataan hälytys,
+        -- jotta ulkopuolinen hyökkääjä ei voi tahallisesti estää henkilökunnan pääsyä oikealla PINillä.
+        IF v_venue.venue_failed_attempts >= 25 THEN
+            INSERT INTO public.arcade_events (table_id, venue_id, event_type, payload)
+            VALUES (p_table_id, v_venue.venue_id, 'venue_pin_abuse_alert', jsonb_build_object(
+                'auth_method', 'shared_venue_pin',
+                'venue_id', v_venue.venue_id,
+                'table_id', p_table_id,
+                'caller_hash', p_caller_hash,
+                'venue_failed_attempts', v_venue.venue_failed_attempts,
+                'severity', 'warning',
+                'alert', 'Poikkeuksellisen korkea määrä epäonnistuneita PIN-yrityksiä toimipaikalla. Mahdollinen brute-force tai DoS-yritys.'
+            ));
+        END IF;
 
         IF v_caller.failed_attempts >= 5 THEN
             RETURN jsonb_build_object(
